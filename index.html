@@ -89,6 +89,14 @@
     color:var(--muted);font-size:20px;line-height:1;display:grid;place-items:center}
   .del-btn:hover{color:var(--danger);border-color:var(--line)}
 
+  .edit-btn{width:30px;height:30px;flex:none;border-radius:8px;background:transparent;border:1px solid transparent;
+    color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center}
+  .edit-btn:hover{color:var(--chalk);border-color:var(--line)}
+  .name-input{flex:1;min-width:0;background:#0c1610;color:var(--chalk);border:1px solid var(--lime);
+    border-radius:8px;padding:7px 10px;font:inherit;font-weight:600;font-size:15px}
+  .ok-btn{width:34px;height:34px;flex:none;border-radius:8px;background:var(--lime);color:#13251a;border:none;
+    font-size:16px;line-height:1;display:grid;place-items:center;font-weight:800}
+
   .hint{font-size:12.5px;color:var(--muted);margin:12px 2px 0}
   .hint b{color:var(--chalk);font-weight:700}
   .notice{margin-top:12px;border-radius:10px;padding:10px 13px;font-size:14px;
@@ -155,7 +163,20 @@
   .tbody{padding:12px;display:flex;flex-direction:column;gap:7px;min-height:54px}
   .tempty{font-size:13px;color:rgba(255,255,255,.85)}
   .jersey{display:flex;align-items:center;gap:8px;background:rgba(10,18,14,.6);border:1px solid rgba(255,255,255,.16);
-    border-left:3px solid var(--c);border-radius:9px;padding:7px 10px;color:#fff;font-weight:600;font-size:14px}
+    border-left:3px solid var(--c);border-radius:9px;padding:7px 10px;color:#fff;font-weight:600;font-size:14px;cursor:pointer}
+  .jersey:hover{background:rgba(10,18,14,.78)}
+  .jersey.sel{outline:2px solid var(--lime);outline-offset:1px;background:rgba(217,242,74,.16)}
+  .jersey.reveal{animation:jin .34s ease both}
+  @keyframes jin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+
+  .result-note{margin:0 2px 12px;border-radius:10px;padding:9px 13px;font-size:13.5px;font-weight:600;
+    background:rgba(255,210,63,.13);border:1px solid rgba(255,210,63,.4);color:#ffe08a}
+  .result-note.hidden{display:none}
+  .move-hint{font-size:12.5px;color:var(--muted);margin:0 2px 12px;opacity:0;height:0;overflow:hidden;transition:opacity .15s ease}
+  .move-hint.active{opacity:1;height:auto;margin:0 2px 12px}
+  .move-hint b{color:var(--lime)}
+  .thead.target{cursor:pointer}
+  .thead.target:hover{filter:brightness(1.08)}
   .jersey .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .jersey .arm{font-family:"Anton";font-size:12px;background:var(--lime);color:#13251a;border-radius:5px;padding:1px 6px;line-height:1.3}
   .jersey .glove{font-size:13px;line-height:1}
@@ -225,10 +246,13 @@
       <h2>Equipos listos</h2>
       <div class="result-actions">
         <button class="btn" id="copyBtn">⧉ Copiar</button>
-        <button class="btn wa" id="waBtn">Compartir por WhatsApp</button>
+        <button class="btn" id="imgBtn">🖼 Imagen</button>
+        <button class="btn wa" id="waBtn">WhatsApp</button>
         <button class="btn" id="redrawBtn">↻ Volver a sortear</button>
       </div>
     </div>
+    <div class="result-note hidden" id="resultNote"></div>
+    <p class="move-hint" id="moveHint">Toca un jugador para moverlo: luego toca <b>otro jugador</b> para intercambiar, o el <b>encabezado de un equipo</b> para mandarlo ahí.</p>
     <div class="boards" id="boards"></div>
   </section>
 
@@ -262,6 +286,8 @@
   const teamNum=$("#teamNum"),teamSetup=$("#teamSetup"),lessBtn=$("#lessBtn"),moreBtn=$("#moreBtn");
   const copyBtn=$("#copyBtn"),waBtn=$("#waBtn"),toast=$("#toast");
   let lastTeams=null;
+  let editingId=null;
+  let moveSel=null;
 
   const groupColor=(g)=>GROUP_COLORS[(g-1)%GROUP_COLORS.length];
   const showNotice=(m)=>{ if(!m){notice.classList.add("hidden");notice.textContent="";return;} notice.textContent=m;notice.classList.remove("hidden"); };
@@ -314,6 +340,12 @@
   function toggleGk(id){
     const p=players.find(x=>x.id===id);if(!p)return;
     p.gk=!p.gk;render();
+  }
+  function saveName(id,value){
+    const p=players.find(x=>x.id===id);if(!p){editingId=null;render();return;}
+    const v=value.trim();
+    if(v) p.name=v;
+    editingId=null;render();
   }
 
   // ---- together ----
@@ -393,7 +425,28 @@
       gk.title="Marcar como portero";gk.setAttribute("aria-label","Portero: "+p.name);
       gk.addEventListener("click",e=>{e.stopPropagation();toggleGk(p.id);});
       const name=document.createElement("span");name.className="name";name.textContent=p.name;
-      row.appendChild(cap);row.appendChild(gk);row.appendChild(name);
+      row.appendChild(cap);row.appendChild(gk);
+      if(editingId===p.id){
+        const inp=document.createElement("input");inp.className="name-input";inp.value=p.name;
+        inp.setAttribute("aria-label","Editar nombre");
+        inp.addEventListener("click",e=>e.stopPropagation());
+        inp.addEventListener("keydown",e=>{e.stopPropagation();
+          if(e.key==="Enter"){saveName(p.id,inp.value);}
+          else if(e.key==="Escape"){editingId=null;render();}});
+        inp.addEventListener("blur",()=>saveName(p.id,inp.value));
+        row.appendChild(inp);
+        const ok=document.createElement("button");ok.className="ok-btn";ok.textContent="✓";ok.title="Guardar";
+        ok.addEventListener("click",e=>{e.stopPropagation();saveName(p.id,inp.value);});
+        row.appendChild(ok);
+        roster.appendChild(row);
+        setTimeout(()=>{inp.focus();inp.select();},0);
+        return;
+      }
+      row.appendChild(name);
+      const edit=document.createElement("button");edit.className="edit-btn";edit.textContent="✎";
+      edit.title="Editar nombre";edit.setAttribute("aria-label","Editar nombre de "+p.name);
+      edit.addEventListener("click",e=>{e.stopPropagation();editingId=p.id;render();});
+      row.appendChild(edit);
       if(p.group!=null){const pill=document.createElement("button");pill.className="grp-pill";
         pill.style.background=groupColor(p.group);pill.textContent="Juntos "+p.group;pill.title="Quitar de este grupo";
         pill.addEventListener("click",e=>{e.stopPropagation();ungroup(p.group);});row.appendChild(pill);}
@@ -500,34 +553,87 @@
 
     const teams=Array.from({length:N},()=>[]);
     units.forEach((u,i)=>u.members.forEach(m=>teams[colorArr[i]].push(m)));
-    showNotice("");renderResult(teams);
+    showNotice("");revealResult(teams);
   }
 
-  function renderResult(teams){
+  const reduceMotion=()=>window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function revealResult(teams){
+    moveSel=null;
+    const restore=()=>{drawBtn.disabled=players.length<2;drawBtn.textContent="⚽ Sortear equipos";
+      $("#redrawBtn").disabled=false;$("#redrawBtn").textContent="↻ Volver a sortear";};
+    if(reduceMotion()){renderResult(teams,false);restore();return;}
+    drawBtn.disabled=true;drawBtn.textContent="Sorteando…";
+    $("#redrawBtn").disabled=true;$("#redrawBtn").textContent="Sorteando…";
+    setTimeout(()=>{renderResult(teams,true);restore();},520);
+  }
+
+  // ---- manual adjust (move / swap after the draw) ----
+  function findTeamOf(id){return lastTeams.findIndex(t=>t.some(m=>m.id===id));}
+  function onJerseyTap(teamIdx,id){
+    if(!moveSel){moveSel={t:teamIdx,id};renderResult(lastTeams,false);return;}
+    if(moveSel.id===id){moveSel=null;renderResult(lastTeams,false);return;}
+    // swap the two players between their teams
+    const fromT=moveSel.t, selId=moveSel.id;
+    const a=lastTeams[fromT].find(m=>m.id===selId);
+    const b=lastTeams[teamIdx].find(m=>m.id===id);
+    lastTeams[fromT]=lastTeams[fromT].filter(m=>m.id!==selId);
+    lastTeams[teamIdx]=lastTeams[teamIdx].filter(m=>m.id!==id);
+    lastTeams[teamIdx].push(a);lastTeams[fromT].push(b);
+    moveSel=null;renderResult(lastTeams,false);
+  }
+  function onTeamTap(teamIdx){
+    if(!moveSel)return;
+    if(moveSel.t===teamIdx){moveSel=null;renderResult(lastTeams,false);return;}
+    const a=lastTeams[moveSel.t].find(m=>m.id===moveSel.id);
+    lastTeams[moveSel.t]=lastTeams[moveSel.t].filter(m=>m.id!==moveSel.id);
+    lastTeams[teamIdx].push(a);
+    moveSel=null;renderResult(lastTeams,false);
+  }
+
+  function renderResult(teams,animate){
     lastTeams=teams;
+    const note=$("#resultNote");
+    // goalkeeper warning
+    const totalGk=teams.reduce((s,m)=>s+m.filter(x=>x.gk).length,0);
+    const without=teams.map((m,i)=>({i,empty:m.length===0,has:m.some(x=>x.gk)}))
+                       .filter(x=>!x.empty&&!x.has);
+    if(totalGk>0&&without.length){
+      note.textContent="⚠️ Sin portero: "+without.map(x=>"Equipo "+(x.i+1)+" ("+COLORS[teamColors[x.i]].name+")").join(", ");
+      note.classList.remove("hidden");
+    }else note.classList.add("hidden");
+    // move hint visibility
+    $("#moveHint").classList.toggle("active",!!moveSel);
+
     const boards=$("#boards");boards.innerHTML="";
+    let gi=0;
     teams.forEach((members,i)=>{
       const ck=teamColors[i],col=COLORS[ck];
-      const card=document.createElement("div");card.className="tcard";
+      const card=document.createElement("div");card.className="tcard"+(animate?" animate":"");
       card.style.setProperty("--c",col.fill);card.style.setProperty("--ct",col.on);card.style.animationDelay=(i*0.05)+"s";
-      const head=document.createElement("div");head.className="thead";
+      const head=document.createElement("div");head.className="thead"+(moveSel?" target":"");
       const nm=document.createElement("span");nm.className="tname";nm.textContent="Equipo "+(i+1)+" · "+col.name;
       const ct=document.createElement("span");ct.className="tcount";ct.textContent=members.length;
       head.appendChild(nm);head.appendChild(ct);card.appendChild(head);
+      head.addEventListener("click",()=>onTeamTap(i));
       const body=document.createElement("div");body.className="tbody";
-      if(!members.length){const e=document.createElement("span");e.className="tempty";e.textContent="Sin jugadores";body.appendChild(e);}
-      else shuffle(members.slice()).forEach(m=>{
-        const j=document.createElement("div");j.className="jersey";
+      if(!members.length){const e=document.createElement("span");e.className="tempty";e.textContent=moveSel?"Toca para mover aquí":"Sin jugadores";body.appendChild(e);}
+      else members.forEach(m=>{
+        const j=document.createElement("div");
+        const isSel=moveSel&&moveSel.id===m.id;
+        j.className="jersey"+(isSel?" sel":"")+(animate?" reveal":"");
+        if(animate){j.style.animationDelay=(gi*0.045)+"s";gi++;}
         const n=document.createElement("span");n.className="nm";n.textContent=m.name;j.appendChild(n);
         if(m.captain){const a=document.createElement("span");a.className="arm";a.textContent="C";a.title="Capitán";j.appendChild(a);}
         if(m.gk){const g=document.createElement("span");g.className="glove";g.textContent="🧤";g.title="Portero";j.appendChild(g);}
         if(m.group!=null){const l=document.createElement("span");l.className="lock";l.textContent="🔗"+m.group;l.title="Grupo "+m.group;j.appendChild(l);}
+        j.addEventListener("click",()=>onJerseyTap(i,m.id));
         body.appendChild(j);
       });
       card.appendChild(body);boards.appendChild(card);
     });
     result.classList.remove("hidden");
-    result.scrollIntoView({behavior:"smooth",block:"start"});
+    if(animate) result.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
   // ---- copy / share ----
@@ -569,6 +675,71 @@
     window.location.href="https://wa.me/?text="+encodeURIComponent(text);
   }
 
+  // ---- share as image (canvas, works offline) ----
+  function drawResultImage(){
+    const teams=lastTeams||[];
+    const dpr=2, W=820;
+    const pad=40, titleH=70, headH=58, lineH=44, teamGap=22, bodyPadY=14;
+    let H=pad+titleH;
+    teams.forEach(m=>{H+=headH+bodyPadY*2+Math.max(1,m.length)*lineH+teamGap;});
+    H+=pad-teamGap+30; // footer space
+    const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
+    const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
+    const round=(x,y,w,h,r)=>{if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}else{ctx.beginPath();ctx.rect(x,y,w,h);}};
+    // background
+    const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#14271d");bg.addColorStop(1,"#0b1410");
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    // title
+    ctx.fillStyle="#eef5ef";ctx.textBaseline="middle";
+    ctx.font="700 34px Arial, sans-serif";ctx.fillText("⚽ Sorteo de equipos",pad,pad+24);
+    let y=pad+titleH;
+    teams.forEach((members,i)=>{
+      const ck=teamColors[i],col=COLORS[ck];
+      const x=pad,w=W-pad*2;
+      const bodyH=bodyPadY*2+Math.max(1,members.length)*lineH;
+      // card bg
+      ctx.fillStyle="rgba(10,18,14,0.55)";round(x,y,w,headH+bodyH,16);ctx.fill();
+      // accent left border
+      ctx.fillStyle=col.fill;round(x,y,6,headH+bodyH,16);ctx.fill();
+      // header bar
+      ctx.fillStyle=col.fill;round(x,y,w,headH,16);ctx.fill();ctx.fillRect(x,y+headH-16,w,16);
+      ctx.fillStyle=col.on;ctx.font="700 24px Arial, sans-serif";
+      ctx.fillText("Equipo "+(i+1)+" · "+col.name,x+22,y+headH/2);
+      ctx.textAlign="right";ctx.fillText(String(members.length),x+w-20,y+headH/2);ctx.textAlign="left";
+      // players
+      let py=y+headH+bodyPadY+lineH/2;
+      ctx.fillStyle="#ffffff";ctx.font="500 22px Arial, sans-serif";
+      if(!members.length){ctx.fillStyle="rgba(255,255,255,0.7)";ctx.fillText("(sin jugadores)",x+22,py);}
+      members.forEach(m=>{
+        let label=m.name;if(m.captain)label+="  (C)";if(m.gk)label+="  🧤";
+        ctx.fillStyle="#ffffff";ctx.fillText("•  "+label,x+22,py);py+=lineH;
+      });
+      y+=headH+bodyH+teamGap;
+    });
+    ctx.fillStyle="rgba(238,245,239,0.45)";ctx.font="400 16px Arial, sans-serif";
+    ctx.fillText("Hecho con Sorteo de equipos",pad,H-pad+6);
+    return cv;
+  }
+  function canvasToBlob(cv){return new Promise(res=>{cv.toBlob(b=>res(b),"image/png");});}
+  async function shareImage(){
+    if(!lastTeams)return;
+    showToast("Generando imagen…");
+    try{
+      const cv=drawResultImage();
+      const blob=await canvasToBlob(cv);
+      const file=new File([blob],"equipos.png",{type:"image/png"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],text:"⚽ Equipos sorteados"});
+      }else{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");a.href=url;a.download="equipos.png";
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        showToast("Imagen descargada");
+      }
+    }catch(e){showToast("No se pudo compartir la imagen");}
+  }
+
   // ---- wire ----
   $("#addBtn").addEventListener("click",addPlayers);
   input.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter")addPlayers();});
@@ -581,6 +752,7 @@
   drawBtn.addEventListener("click",draw);
   $("#redrawBtn").addEventListener("click",draw);
   copyBtn.addEventListener("click",copyResult);
+  $("#imgBtn").addEventListener("click",shareImage);
   waBtn.addEventListener("click",shareWhatsApp);
 
   renderTeamSetup();render();
