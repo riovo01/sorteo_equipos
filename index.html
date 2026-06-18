@@ -42,6 +42,17 @@
   .count-chip{font-family:"Anton";letter-spacing:.04em;font-size:13px;background:var(--panel-2);
     border:1px solid var(--line);color:var(--chalk);padding:2px 10px;border-radius:999px}
 
+  .optional{font-family:"Archivo";font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:none}
+  .field-grid{display:flex;gap:10px;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:6px;flex:1 1 220px;min-width:0}
+  .field.narrow{flex:0 1 92px}
+  .field.time{flex:1 1 130px}
+  .flabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .field select,.field input[type=time]{background:var(--bg);color:var(--chalk);border:1px solid var(--line);
+    border-radius:10px;padding:11px 12px;font:inherit;font-weight:600;width:100%;-webkit-appearance:none;appearance:none}
+  .field input[type=time]{-webkit-appearance:none}
+  .field select:focus,.field input:focus{outline:2px solid var(--lime);outline-offset:2px}
+
   textarea{width:100%;min-height:96px;resize:vertical;background:var(--bg);color:var(--chalk);
     border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
   textarea::placeholder{color:#5d7166}
@@ -196,7 +207,29 @@
   </header>
 
   <section class="card">
-    <h2>1 · Agrega jugadores</h2>
+    <h2>1 · La cancha <span class="optional">opcional, puedes dejarlo vacío</span></h2>
+    <div class="field-grid">
+      <label class="field">
+        <span class="flabel">Cancha</span>
+        <select id="canchaSel"><option value="">— Sin especificar —</option></select>
+      </label>
+      <label class="field narrow">
+        <span class="flabel">N°</span>
+        <select id="canchaNum"><option value="">—</option></select>
+      </label>
+      <label class="field time">
+        <span class="flabel">Desde</span>
+        <input type="time" id="timeStart" />
+      </label>
+      <label class="field time">
+        <span class="flabel">Hasta</span>
+        <input type="time" id="timeEnd" />
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2 · Agrega jugadores</h2>
     <textarea id="input"></textarea>
     <div class="row-actions">
       <button class="btn primary" id="addBtn">Agregar a la lista</button>
@@ -205,7 +238,7 @@
   </section>
 
   <section class="card">
-    <h2>2 · Capitanes, juntos y separados <span class="count-chip" id="rosterCount">0 jugadores</span></h2>
+    <h2>3 · Capitanes, juntos y separados <span class="count-chip" id="rosterCount">0 jugadores</span></h2>
     <div class="seltoolbar">
       <span><strong id="selCount">0</strong> seleccionados</span>
       <span class="spacer"></span>
@@ -227,7 +260,7 @@
   </section>
 
   <section class="card">
-    <h2>3 · Equipos y colores</h2>
+    <h2>4 · Equipos y colores</h2>
     <div class="stepper">
       <button id="lessBtn" aria-label="Menos equipos">−</button>
       <span class="num" id="teamNum">2</span>
@@ -285,9 +318,46 @@
   const rulesWrap=$("#rulesWrap"),rulesEl=$("#rules");
   const teamNum=$("#teamNum"),teamSetup=$("#teamSetup"),lessBtn=$("#lessBtn"),moreBtn=$("#moreBtn");
   const copyBtn=$("#copyBtn"),waBtn=$("#waBtn"),toast=$("#toast");
+  const canchaSel=$("#canchaSel"),canchaNum=$("#canchaNum"),timeStart=$("#timeStart"),timeEnd=$("#timeEnd");
   let lastTeams=null;
   let editingId=null;
   let moveSel=null;
+
+  // Lista de canchas (nombre + dirección).
+  const CANCHAS=[
+    {name:"Terra Soccer", address:"Av. Marathón 2209, Santiago, Macul, Región Metropolitana"},
+    {name:"Club Domínica Sport", address:"Domínica 136, 8420373 Recoleta, Región Metropolitana"},
+    {name:"Club Deportivo USS", address:"Av. Padre Hurtado Sur 2650"}
+  ];
+  function populateCanchas(){
+    CANCHAS.forEach((c,i)=>{
+      const o=document.createElement("option");o.value=String(i);
+      o.textContent=c.name;
+      canchaSel.appendChild(o);
+    });
+    for(let n=1;n<=20;n++){const o=document.createElement("option");o.value=String(n);o.textContent=String(n);canchaNum.appendChild(o);}
+  }
+  function getMatchInfo(){
+    const idx=canchaSel.value;let name="",address="";
+    if(idx!==""){const c=CANCHAS[+idx];if(c){name=c.name;address=c.address||"";}}
+    return {name,address,num:canchaNum.value,start:timeStart.value,end:timeEnd.value};
+  }
+  function buildMatchLines(){
+    const info=getMatchInfo();const lines=[];
+    let loc="";
+    if(info.name)loc=info.name;
+    if(info.address)loc+=(loc?" — ":"")+info.address;
+    if(loc)lines.push("📍 "+loc);
+    if(info.num)lines.push("🥅 Cancha N° "+info.num);
+    if(info.start||info.end){
+      let t;
+      if(info.start&&info.end)t=info.start+" a "+info.end;
+      else if(info.start)t="desde "+info.start;
+      else t="hasta "+info.end;
+      lines.push("🕒 "+t);
+    }
+    return lines;
+  }
 
   const groupColor=(g)=>GROUP_COLORS[(g-1)%GROUP_COLORS.length];
   const showNotice=(m)=>{ if(!m){notice.classList.add("hidden");notice.textContent="";return;} notice.textContent=m;notice.classList.remove("hidden"); };
@@ -641,6 +711,8 @@
   function buildShareText(){
     if(!lastTeams)return "";
     let t="⚽ Sorteo de equipos\n";
+    const ml=buildMatchLines();
+    if(ml.length)t+=ml.join("\n")+"\n";
     lastTeams.forEach((members,i)=>{
       const ck=teamColors[i],col=COLORS[ck];
       t+="\n"+(COLOR_EMOJI[ck]||"")+" Equipo "+(i+1)+" · "+col.name+" ("+members.length+")\n";
@@ -678,46 +750,77 @@
   // ---- share as image (canvas, works offline) ----
   function drawResultImage(){
     const teams=lastTeams||[];
+    const ml=buildMatchLines();
     const dpr=2, W=820;
-    const pad=40, titleH=70, headH=58, lineH=44, teamGap=22, bodyPadY=14;
-    let H=pad+titleH;
+    const pad=40, headH=58, lineH=44, teamGap=22, bodyPadY=14;
+    const subFont="500 19px Arial, sans-serif", maxSubW=W-2*pad;
+    const meas=document.createElement("canvas").getContext("2d");meas.font=subFont;
+    const wrapLine=(text)=>{const words=text.split(" ");const out=[];let cur="";
+      words.forEach(w=>{const t=cur?cur+" "+w:w;
+        if(cur&&meas.measureText(t).width>maxSubW){out.push(cur);cur=w;}else cur=t;});
+      if(cur)out.push(cur);return out;};
+    const subLines=[];ml.forEach(l=>wrapLine(l).forEach(w=>subLines.push(w)));
+    const subH = subLines.length ? (subLines.length*28+6) : 0;
+    const cardsTop = pad+56+subH+14;
+    let H=cardsTop;
     teams.forEach(m=>{H+=headH+bodyPadY*2+Math.max(1,m.length)*lineH+teamGap;});
-    H+=pad-teamGap+30; // footer space
+    H+=pad-teamGap+30;
     const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
     const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
     const round=(x,y,w,h,r)=>{if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}else{ctx.beginPath();ctx.rect(x,y,w,h);}};
-    // background
-    const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#14271d");bg.addColorStop(1,"#0b1410");
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-    // title
-    ctx.fillStyle="#eef5ef";ctx.textBaseline="middle";
-    ctx.font="700 34px Arial, sans-serif";ctx.fillText("⚽ Sorteo de equipos",pad,pad+24);
-    let y=pad+titleH;
+
+    // --- pitch background ---
+    ctx.fillStyle="#1f7a4d";ctx.fillRect(0,0,W,H);
+    const band=W/9;
+    for(let bx=0;bx<W;bx+=band*2){ctx.fillStyle="#1b6e45";ctx.fillRect(bx,0,band,H);}
+    ctx.strokeStyle="rgba(238,245,239,0.5)";ctx.lineWidth=3;ctx.fillStyle="rgba(238,245,239,0.5)";
+    const m=16;
+    ctx.strokeRect(m,m,W-2*m,H-2*m);
+    ctx.beginPath();ctx.moveTo(m,H/2);ctx.lineTo(W-m,H/2);ctx.stroke();
+    ctx.beginPath();ctx.arc(W/2,H/2,72,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(W/2,H/2,6,0,Math.PI*2);ctx.fill();
+    const boxW=W*0.46, boxH=64, gW=W*0.26, gH=30;
+    ctx.strokeRect((W-boxW)/2,m,boxW,boxH);ctx.strokeRect((W-gW)/2,m,gW,gH);
+    ctx.strokeRect((W-boxW)/2,H-m-boxH,boxW,boxH);ctx.strokeRect((W-gW)/2,H-m-gH,gW,gH);
+    const ov=ctx.createLinearGradient(0,0,0,H);ov.addColorStop(0,"rgba(8,14,11,0.34)");ov.addColorStop(1,"rgba(8,14,11,0.5)");
+    ctx.fillStyle=ov;ctx.fillRect(0,0,W,H);
+
+    // --- title + match info ---
+    ctx.save();ctx.shadowColor="rgba(0,0,0,0.6)";ctx.shadowBlur=4;ctx.shadowOffsetY=1;ctx.textBaseline="middle";
+    ctx.fillStyle="#ffffff";ctx.font="700 34px Arial, sans-serif";ctx.fillText("⚽ Sorteo de equipos",pad,pad+22);
+    ctx.fillStyle="rgba(255,255,255,0.92)";ctx.font=subFont;
+    subLines.forEach((ln,k)=>ctx.fillText(ln,pad,pad+54+k*28));
+    ctx.restore();
+
+    let y=cardsTop;
     teams.forEach((members,i)=>{
       const ck=teamColors[i],col=COLORS[ck];
       const x=pad,w=W-pad*2;
       const bodyH=bodyPadY*2+Math.max(1,members.length)*lineH;
-      // card bg
-      ctx.fillStyle="rgba(10,18,14,0.55)";round(x,y,w,headH+bodyH,16);ctx.fill();
-      // accent left border
-      ctx.fillStyle=col.fill;round(x,y,6,headH+bodyH,16);ctx.fill();
+      // translucent card so the pitch shows through
+      ctx.fillStyle="rgba(9,16,12,0.46)";round(x,y,w,headH+bodyH,16);ctx.fill();
+      ctx.strokeStyle="rgba(255,255,255,0.14)";ctx.lineWidth=1.5;round(x,y,w,headH+bodyH,16);ctx.stroke();
       // header bar
       ctx.fillStyle=col.fill;round(x,y,w,headH,16);ctx.fill();ctx.fillRect(x,y+headH-16,w,16);
+      ctx.fillStyle=col.fill;ctx.fillRect(x,y,6,headH+bodyH);                      // accent edge
       ctx.fillStyle=col.on;ctx.font="700 24px Arial, sans-serif";
       ctx.fillText("Equipo "+(i+1)+" · "+col.name,x+22,y+headH/2);
       ctx.textAlign="right";ctx.fillText(String(members.length),x+w-20,y+headH/2);ctx.textAlign="left";
       // players
       let py=y+headH+bodyPadY+lineH/2;
-      ctx.fillStyle="#ffffff";ctx.font="500 22px Arial, sans-serif";
+      ctx.save();ctx.shadowColor="rgba(0,0,0,0.55)";ctx.shadowBlur=3;
+      ctx.font="500 22px Arial, sans-serif";
       if(!members.length){ctx.fillStyle="rgba(255,255,255,0.7)";ctx.fillText("(sin jugadores)",x+22,py);}
-      members.forEach(m=>{
-        let label=m.name;if(m.captain)label+="  (C)";if(m.gk)label+="  🧤";
+      members.forEach(mb=>{
+        let label=mb.name;if(mb.captain)label+="  (C)";if(mb.gk)label+="  🧤";
         ctx.fillStyle="#ffffff";ctx.fillText("•  "+label,x+22,py);py+=lineH;
       });
+      ctx.restore();
       y+=headH+bodyH+teamGap;
     });
-    ctx.fillStyle="rgba(238,245,239,0.45)";ctx.font="400 16px Arial, sans-serif";
-    ctx.fillText("Hecho con Sorteo de equipos",pad,H-pad+6);
+    ctx.save();ctx.shadowColor="rgba(0,0,0,0.55)";ctx.shadowBlur=3;
+    ctx.fillStyle="rgba(238,245,239,0.7)";ctx.font="400 16px Arial, sans-serif";
+    ctx.fillText("Hecho con Sorteo de equipos",pad,H-pad+6);ctx.restore();
     return cv;
   }
   function canvasToBlob(cv){return new Promise(res=>{cv.toBlob(b=>res(b),"image/png");});}
@@ -755,6 +858,7 @@
   $("#imgBtn").addEventListener("click",shareImage);
   waBtn.addEventListener("click",shareWhatsApp);
 
+  populateCanchas();
   renderTeamSetup();render();
 })();
 </script>
