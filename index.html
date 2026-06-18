@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sorteo" />
+  <meta name="theme-color" content="#0b1410" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+
+<title>Sorteo de equipos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1410;--panel:#12201a;--panel-2:#16271f;--line:#26392f;
+    --chalk:#eef5ef;--muted:#8aa396;--lime:#d9f24a;--danger:#ff5b22;--radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:radial-gradient(1200px 600px at 50% -10%, #14271d 0%, var(--bg) 60%);
+    color:var(--chalk);font-family:"Archivo",system-ui,sans-serif;line-height:1.45;
+    min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+
+  header{margin:6px 0 22px}
+  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);font-weight:700;margin:0 0 8px}
+  h1{font-family:"Anton",sans-serif;font-weight:400;font-size:clamp(40px,11vw,76px);line-height:.92;margin:0;
+    letter-spacing:.01em;text-transform:uppercase}
+  h1 .split{position:relative;display:inline-block}
+  h1 .split::after{content:"";position:absolute;left:0;right:0;bottom:.12em;height:3px;
+    background:repeating-linear-gradient(90deg,var(--chalk) 0 14px,transparent 14px 26px);opacity:.5}
+  .sub{color:var(--muted);margin:10px 0 0;max-width:50ch}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin:16px 0}
+  .card h2{font-family:"Archivo";font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .count-chip{font-family:"Anton";letter-spacing:.04em;font-size:13px;background:var(--panel-2);
+    border:1px solid var(--line);color:var(--chalk);padding:2px 10px;border-radius:999px}
+
+  textarea{width:100%;min-height:96px;resize:vertical;background:var(--bg);color:var(--chalk);
+    border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
+  textarea::placeholder{color:#5d7166}
+  textarea:focus,button:focus-visible,.player:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+
+  .row-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  button{font-family:inherit;cursor:pointer;border:none}
+  .btn{background:var(--panel-2);color:var(--chalk);border:1px solid var(--line);border-radius:10px;
+    padding:11px 16px;font-weight:700;font-size:14px;transition:transform .06s ease, background .15s ease, border-color .15s ease}
+  .btn:hover{border-color:#3a5446}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--lime);color:#13251a;border-color:transparent}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  .seltoolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel-2);
+    border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:14px;color:var(--muted)}
+  .seltoolbar strong{color:var(--chalk)}
+  .seltoolbar .spacer{flex:1}
+
+  .players{display:flex;flex-direction:column;gap:8px}
+  .empty{color:var(--muted);font-size:14px;padding:8px 2px}
+  .player{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px 8px 8px;cursor:pointer;transition:border-color .12s ease, background .12s ease}
+  .player:hover{border-color:#3a5446}
+  .player.selected{border-color:var(--lime);background:#15241b}
+  .player .name{flex:1;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player.captain .name::after{content:" · capitán";color:var(--muted);font-weight:500;font-size:13px}
+
+  .cap-btn{width:34px;height:34px;flex:none;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--muted);font-family:"Anton";font-size:17px;line-height:1;display:grid;place-items:center}
+  .cap-btn:hover{color:var(--chalk)}
+  .player.captain .cap-btn{background:var(--lime);color:#13251a;border-color:transparent}
+
+  .grp-pill{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;color:#0c130f;border:none}
+  .del-btn{width:30px;height:30px;flex:none;border-radius:8px;background:transparent;border:1px solid transparent;
+    color:var(--muted);font-size:20px;line-height:1;display:grid;place-items:center}
+  .del-btn:hover{color:var(--danger);border-color:var(--line)}
+
+  .hint{font-size:12.5px;color:var(--muted);margin:12px 2px 0}
+  .hint b{color:var(--chalk);font-weight:700}
+  .notice{margin-top:12px;border-radius:10px;padding:10px 13px;font-size:14px;
+    background:rgba(255,91,34,.12);border:1px solid rgba(255,91,34,.4);color:#ffb59c}
+  .notice.hidden{display:none}
+
+  /* separation rules */
+  .rules-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:16px 2px 8px}
+  .rules{display:flex;flex-direction:column;gap:6px}
+  .rules.hidden{display:none}
+  .rule{display:flex;align-items:center;gap:8px;font-size:13.5px;background:var(--bg);
+    border:1px solid var(--line);border-radius:9px;padding:7px 10px}
+  .rule .tag{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--chalk)}
+  .rule .gd{width:11px;height:11px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+  .rule .vs{color:var(--muted);font-weight:800;letter-spacing:.04em}
+  .rule .rm{margin-left:auto;width:26px;height:26px;border-radius:7px;background:transparent;border:1px solid transparent;
+    color:var(--muted);font-size:18px;line-height:1;display:grid;place-items:center}
+  .rule .rm:hover{color:var(--danger);border-color:var(--line)}
+
+  .stepper{display:inline-flex;align-items:center;gap:16px;background:var(--bg);border:1px solid var(--line);
+    border-radius:12px;padding:6px 10px;margin-bottom:16px}
+  .stepper button{width:40px;height:40px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--chalk);font-family:"Anton";font-size:24px;line-height:1}
+  .stepper button:disabled{opacity:.35;cursor:not-allowed}
+  .stepper .num{font-family:"Anton";font-size:30px;min-width:1.6ch;text-align:center}
+  .stepper .lbl{font-size:13px;color:var(--muted);margin-left:4px}
+
+  .team-setup{display:flex;flex-direction:column;gap:10px}
+  .team-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px}
+  .team-row .tlabel{font-weight:700;font-size:14px;min-width:96px;display:flex;align-items:center;gap:8px}
+  .team-row .tdot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .swatch{width:30px;height:30px;border-radius:8px;border:2px solid rgba(255,255,255,.2);cursor:pointer;padding:0}
+  .swatch.sel{outline:2px solid var(--lime);outline-offset:2px;border-color:rgba(255,255,255,.5)}
+
+  .draw-wrap{margin:18px 0}
+  .draw-btn{width:100%;background:var(--lime);color:#13251a;border-radius:14px;padding:18px;font-family:"Anton";
+    font-size:clamp(22px,6vw,30px);letter-spacing:.04em;text-transform:uppercase;transition:transform .06s ease, filter .15s ease}
+  .draw-btn:hover{filter:brightness(1.05)}
+  .draw-btn:active{transform:translateY(1px)}
+  .draw-btn:disabled{opacity:.4}
+
+  #result{margin-top:4px}
+  #result.hidden{display:none}
+  .result-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:8px 2px 14px;flex-wrap:wrap}
+  .result-head h2{font-family:"Anton";font-weight:400;font-size:26px;text-transform:uppercase;letter-spacing:.02em;margin:0;color:var(--chalk)}
+
+  .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .tcard{border:2px solid var(--c);border-radius:14px;overflow:hidden;
+    background:repeating-linear-gradient(90deg,#1f7a4d 0 30px,#1b6e45 30px 60px);
+    box-shadow:0 16px 36px -22px rgba(0,0,0,.7);animation:rise .3s ease both}
+  .thead{background:var(--c);color:var(--ct);padding:10px 14px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .thead .tname{font-family:"Anton";font-size:18px;text-transform:uppercase;letter-spacing:.03em}
+  .thead .tcount{font-size:12px;background:rgba(0,0,0,.18);color:inherit;padding:1px 9px;border-radius:999px;font-weight:700}
+  .tbody{padding:12px;display:flex;flex-direction:column;gap:7px;min-height:54px}
+  .tempty{font-size:13px;color:rgba(255,255,255,.85)}
+  .jersey{display:flex;align-items:center;gap:8px;background:rgba(10,18,14,.6);border:1px solid rgba(255,255,255,.16);
+    border-left:3px solid var(--c);border-radius:9px;padding:7px 10px;color:#fff;font-weight:600;font-size:14px}
+  .jersey .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .jersey .arm{font-family:"Anton";font-size:12px;background:var(--lime);color:#13251a;border-radius:5px;padding:1px 6px;line-height:1.3}
+  .jersey .lock{font-size:11px;color:rgba(255,255,255,.7)}
+
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){.tcard{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Arma la pichanga</p>
+    <h1>Sorteo de <span class="split">equipos</span></h1>
+    <p class="sub">Marca capitanes, gente que va junta, parejas que deben ir separadas, cuántos equipos y de qué color. El resto se reparte parejo y al azar.</p>
+  </header>
+
+  <section class="card">
+    <h2>1 · Agrega jugadores</h2>
+    <textarea id="input" placeholder="Un nombre por línea (o separados por comas)&#10;Ej:&#10;Erika&#10;Jaime&#10;Juan&#10;Roberto"></textarea>
+    <div class="row-actions">
+      <button class="btn primary" id="addBtn">Agregar a la lista</button>
+      <button class="btn ghost" id="clearBtn">Vaciar todo</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2 · Capitanes, juntos y separados <span class="count-chip" id="rosterCount">0 jugadores</span></h2>
+    <div class="seltoolbar">
+      <span><strong id="selCount">0</strong> seleccionados</span>
+      <span class="spacer"></span>
+      <button class="btn" id="groupBtn" disabled>Mantener juntos</button>
+      <button class="btn" id="separateBtn" disabled>Separar en equipos</button>
+      <button class="btn ghost" id="deselectBtn" disabled>Limpiar</button>
+    </div>
+    <div class="players" id="roster">
+      <p class="empty">Todavía no hay jugadores. Agrégalos arriba.</p>
+    </div>
+
+    <div id="rulesWrap" class="hidden">
+      <p class="rules-title">Deben ir en equipos distintos</p>
+      <div class="rules" id="rules"></div>
+    </div>
+
+    <p class="hint">Toca nombres para <b>seleccionarlos</b>. «Mantener juntos» los amarra al mismo equipo (color). «Separar en equipos» exige que los grupos/personas seleccionados caigan en equipos distintos. La <b>C</b> marca capitán.</p>
+    <div class="notice hidden" id="notice"></div>
+  </section>
+
+  <section class="card">
+    <h2>3 · Equipos y colores</h2>
+    <div class="stepper">
+      <button id="lessBtn" aria-label="Menos equipos">−</button>
+      <span class="num" id="teamNum">2</span>
+      <button id="moreBtn" aria-label="Más equipos">+</button>
+      <span class="lbl">equipos</span>
+    </div>
+    <div class="team-setup" id="teamSetup"></div>
+  </section>
+
+  <div class="draw-wrap">
+    <button class="draw-btn" id="drawBtn" disabled>⚽ Sortear equipos</button>
+  </div>
+
+  <section id="result" class="hidden">
+    <div class="result-head">
+      <h2>Equipos listos</h2>
+      <button class="btn" id="redrawBtn">↻ Volver a sortear</button>
+    </div>
+    <div class="boards" id="boards"></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const COLORS = {
+    rojo:{name:"Rojo",fill:"#e23b3b",on:"#fff"}, azul:{name:"Azul",fill:"#2f7fe0",on:"#fff"},
+    verde:{name:"Verde",fill:"#2faa55",on:"#fff"}, naranja:{name:"Naranja",fill:"#ff7a1a",on:"#3a1500"},
+    blanco:{name:"Blanco",fill:"#f1f1ec",on:"#15201a"}, negro:{name:"Negro",fill:"#1c1c1a",on:"#fff"}
+  };
+  const ORDER=["rojo","azul","verde","naranja","negro","blanco"];
+  const GROUP_COLORS=["#d9f24a","#ff5b22","#1f9be0","#c879ff","#ffd23f","#5ce0a8","#ff7ab0","#7ab8ff"];
+
+  let players=[];                  // {id,name,captain,group}
+  let selected=new Set();
+  let apart=[];                    // [{a:anchor,b:anchor}] anchor = {g:groupId} | {p:playerId}
+  let nextId=1,nextGroup=1;
+  let teamColors=["rojo","azul"];
+
+  const $=(s)=>document.querySelector(s);
+  const input=$("#input"),roster=$("#roster"),rosterCount=$("#rosterCount");
+  const selCount=$("#selCount"),groupBtn=$("#groupBtn"),separateBtn=$("#separateBtn"),deselectBtn=$("#deselectBtn");
+  const drawBtn=$("#drawBtn"),notice=$("#notice"),result=$("#result");
+  const rulesWrap=$("#rulesWrap"),rulesEl=$("#rules");
+  const teamNum=$("#teamNum"),teamSetup=$("#teamSetup"),lessBtn=$("#lessBtn"),moreBtn=$("#moreBtn");
+
+  const groupColor=(g)=>GROUP_COLORS[(g-1)%GROUP_COLORS.length];
+  const showNotice=(m)=>{ if(!m){notice.classList.add("hidden");notice.textContent="";return;} notice.textContent=m;notice.classList.remove("hidden"); };
+  const maxTeams=()=>Math.max(2,Math.min(8,players.length||2));
+  const shuffle=(a)=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+  // ---- anchors (for separation rules) ----
+  const anchorKey=(an)=> an.g!=null ? "g"+an.g : "p"+an.p;
+  const pairKey=(a,b)=>[anchorKey(a),anchorKey(b)].sort().join("|");
+  function selectionAnchors(){
+    const m=new Map();
+    selected.forEach(id=>{const p=players.find(x=>x.id===id);if(!p)return;
+      const an=p.group!=null?{g:p.group}:{p:p.id}; m.set(anchorKey(an),an);});
+    return [...m.values()];
+  }
+  function anchorActive(an){
+    return an.g!=null ? players.some(p=>p.group===an.g) : players.some(p=>p.id===an.p);
+  }
+  function anchorUnitKey(an){ // pre-draw "same team?" key
+    if(an.g!=null) return "g"+an.g;
+    const p=players.find(x=>x.id===an.p); return p && p.group!=null ? "g"+p.group : "p"+an.p;
+  }
+  function anchorRepPlayer(an){
+    return an.g!=null ? players.find(p=>p.group===an.g) : players.find(p=>p.id===an.p);
+  }
+  function anchorLabel(an){
+    if(an.g!=null) return {text:"Grupo "+an.g, color:groupColor(an.g)};
+    const p=players.find(x=>x.id===an.p); return {text:p?p.name:"?", color:null};
+  }
+
+  // ---- players ----
+  function addPlayers(){
+    const raw=input.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+    if(!raw.length)return;
+    const seen=new Set(players.map(p=>p.name.toLowerCase()));let added=0;
+    raw.forEach(name=>{const k=name.toLowerCase();if(seen.has(k))return;seen.add(k);
+      players.push({id:nextId++,name,captain:false,group:null});added++;});
+    input.value=""; showNotice(added?"":"Esos nombres ya estaban en la lista."); render();
+  }
+  function removePlayer(id){players=players.filter(p=>p.id!==id);selected.delete(id);render();}
+  function clearAll(){players=[];selected.clear();apart=[];nextGroup=1;showNotice("");result.classList.add("hidden");render();}
+  function toggleSelect(id){selected.has(id)?selected.delete(id):selected.add(id);render();}
+
+  function toggleCaptain(id){
+    const p=players.find(x=>x.id===id);if(!p)return;
+    if(!p.captain){const caps=players.filter(x=>x.captain).length;
+      if(caps>=teamColors.length){showNotice("Tienes un capitán por equipo. Agrega más equipos para marcar otro.");return;}}
+    p.captain=!p.captain;showNotice("");render();
+  }
+
+  // ---- together ----
+  function groupSelected(){
+    if(selected.size<2)return;
+    const ids=[...selected];const involved=new Set();
+    ids.forEach(id=>{const p=players.find(x=>x.id===id);if(p.group!=null)involved.add(p.group);});
+    const g=nextGroup++;
+    players.forEach(p=>{if(ids.includes(p.id)||(p.group!=null&&involved.has(p.group)))p.group=g;});
+    selected.clear();showNotice("");render();
+  }
+  function ungroup(g){players.forEach(p=>{if(p.group===g)p.group=null;});render();}
+
+  // ---- apart ----
+  function separateSelected(){
+    const ans=selectionAnchors();
+    if(ans.length<2){showNotice("Para separar, selecciona integrantes de al menos 2 grupos o personas distintas.");return;}
+    for(let i=0;i<ans.length;i++)for(let j=i+1;j<ans.length;j++){
+      const k=pairKey(ans[i],ans[j]);
+      if(!apart.some(r=>pairKey(r.a,r.b)===k)) apart.push({a:ans[i],b:ans[j]});
+    }
+    selected.clear();showNotice("");render();
+  }
+  function removeRule(idx){apart.splice(idx,1);render();}
+
+  function cleanupConstraints(){
+    // dissolve groups with <2 members
+    const c={};players.forEach(p=>{if(p.group!=null)c[p.group]=(c[p.group]||0)+1;});
+    players.forEach(p=>{if(p.group!=null&&c[p.group]<2)p.group=null;});
+    // drop apart rules that are no longer valid or became contradictory
+    const before=apart.length;
+    apart=apart.filter(r=>{
+      if(!anchorActive(r.a)||!anchorActive(r.b))return false;
+      return anchorUnitKey(r.a)!==anchorUnitKey(r.b);
+    });
+    if(apart.length<before) showNotice("Se quitó una regla de separación porque esas personas quedaron en el mismo grupo.");
+  }
+
+  // ---- team count + colors ----
+  function setTeamCount(n){
+    n=Math.max(2,Math.min(maxTeams(),n));
+    while(teamColors.length<n){const pick=ORDER.find(c=>!teamColors.includes(c))||ORDER[teamColors.length%ORDER.length];teamColors.push(pick);}
+    if(teamColors.length>n)teamColors=teamColors.slice(0,n);
+    renderTeamSetup();
+  }
+  function renderTeamSetup(){
+    teamNum.textContent=teamColors.length;
+    lessBtn.disabled=teamColors.length<=2;
+    moreBtn.disabled=teamColors.length>=maxTeams();
+    teamSetup.innerHTML="";
+    teamColors.forEach((ck,i)=>{
+      const row=document.createElement("div");row.className="team-row";
+      const lab=document.createElement("span");lab.className="tlabel";
+      const dot=document.createElement("span");dot.className="tdot";dot.style.background=COLORS[ck].fill;
+      lab.appendChild(dot);lab.appendChild(document.createTextNode("Equipo "+(i+1)));row.appendChild(lab);
+      const sw=document.createElement("div");sw.className="swatches";
+      ORDER.forEach(c=>{const b=document.createElement("button");b.className="swatch"+(c===ck?" sel":"");
+        b.style.background=COLORS[c].fill;b.title=COLORS[c].name;b.setAttribute("aria-label","Equipo "+(i+1)+": "+COLORS[c].name);
+        b.addEventListener("click",()=>{teamColors[i]=c;renderTeamSetup();});sw.appendChild(b);});
+      row.appendChild(sw);teamSetup.appendChild(row);
+    });
+  }
+
+  // ---- render ----
+  function render(){
+    cleanupConstraints();
+    roster.innerHTML="";
+    if(!players.length)roster.innerHTML='<p class="empty">Todavía no hay jugadores. Agrégalos arriba.</p>';
+    players.forEach(p=>{
+      const row=document.createElement("div");
+      row.className="player"+(selected.has(p.id)?" selected":"")+(p.captain?" captain":"");
+      row.tabIndex=0;row.setAttribute("role","button");row.setAttribute("aria-pressed",selected.has(p.id));
+      const cap=document.createElement("button");cap.className="cap-btn";cap.textContent="C";
+      cap.title="Marcar como capitán";cap.setAttribute("aria-label","Capitán: "+p.name);
+      cap.addEventListener("click",e=>{e.stopPropagation();toggleCaptain(p.id);});
+      const name=document.createElement("span");name.className="name";name.textContent=p.name;
+      row.appendChild(cap);row.appendChild(name);
+      if(p.group!=null){const pill=document.createElement("button");pill.className="grp-pill";
+        pill.style.background=groupColor(p.group);pill.textContent="Juntos "+p.group;pill.title="Quitar de este grupo";
+        pill.addEventListener("click",e=>{e.stopPropagation();ungroup(p.group);});row.appendChild(pill);}
+      const del=document.createElement("button");del.className="del-btn";del.innerHTML="&times;";
+      del.title="Quitar jugador";del.setAttribute("aria-label","Quitar a "+p.name);
+      del.addEventListener("click",e=>{e.stopPropagation();removePlayer(p.id);});row.appendChild(del);
+      row.addEventListener("click",()=>toggleSelect(p.id));
+      row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleSelect(p.id);}});
+      roster.appendChild(row);
+    });
+
+    // separation rules list
+    rulesEl.innerHTML="";
+    if(apart.length){
+      rulesWrap.classList.remove("hidden");
+      apart.forEach((r,idx)=>{
+        const el=document.createElement("div");el.className="rule";
+        [r.a,r.b].forEach((an,k)=>{
+          if(k===1){const vs=document.createElement("span");vs.className="vs";vs.textContent="⟷";el.appendChild(vs);}
+          const lab=anchorLabel(an);const tag=document.createElement("span");tag.className="tag";
+          if(lab.color){const gd=document.createElement("span");gd.className="gd";gd.style.background=lab.color;tag.appendChild(gd);}
+          tag.appendChild(document.createTextNode(lab.text));el.appendChild(tag);
+        });
+        const rm=document.createElement("button");rm.className="rm";rm.innerHTML="&times;";rm.title="Quitar regla";
+        rm.setAttribute("aria-label","Quitar regla de separación");
+        rm.addEventListener("click",()=>removeRule(idx));el.appendChild(rm);
+        rulesEl.appendChild(el);
+      });
+    }else rulesWrap.classList.add("hidden");
+
+    rosterCount.textContent=players.length+(players.length===1?" jugador":" jugadores");
+    selCount.textContent=selected.size;
+    groupBtn.disabled=selected.size<2;
+    separateBtn.disabled=selectionAnchors().length<2;
+    deselectBtn.disabled=selected.size===0;
+    drawBtn.disabled=players.length<2;
+    if(teamColors.length>maxTeams())setTeamCount(maxTeams());else renderTeamSetup();
+  }
+
+  // ---- units ----
+  function buildUnits(){
+    const byG={},units=[];
+    players.forEach(p=>{if(p.group!=null)(byG[p.group]=byG[p.group]||[]).push(p);else units.push({members:[p],caps:p.captain?1:0});});
+    Object.values(byG).forEach(m=>units.push({members:m,caps:m.filter(x=>x.captain).length}));
+    return units;
+  }
+
+  // ---- draw ----
+  function draw(){
+    const N=teamColors.length;
+    const units=buildUnits();
+    if(units.some(u=>u.caps>=2)){showNotice("Dos capitanes están en el mismo grupo «Juntos» y no pueden ir en equipos distintos. Sepáralos o deja solo uno.");return;}
+    const capCount=units.filter(u=>u.caps===1).length;
+    if(capCount>N){showNotice("Hay más capitanes ("+capCount+") que equipos ("+N+"). Quita capitanes o agrega equipos.");return;}
+
+    const pu={};units.forEach((u,i)=>u.members.forEach(m=>pu[m.id]=i));
+    const adj=Array.from({length:units.length},()=>new Set());
+    let contradiction=false;
+    const addEdge=(i,j)=>{if(i===j){contradiction=true;return;}adj[i].add(j);adj[j].add(i);};
+
+    const capIdx=[];units.forEach((u,i)=>{if(u.caps===1)capIdx.push(i);});
+    for(let x=0;x<capIdx.length;x++)for(let y=x+1;y<capIdx.length;y++)addEdge(capIdx[x],capIdx[y]);
+
+    apart.forEach(r=>{const ra=anchorRepPlayer(r.a),rb=anchorRepPlayer(r.b);if(!ra||!rb)return;addEdge(pu[ra.id],pu[rb.id]);});
+    if(contradiction){showNotice("Una regla es imposible: alguien tiene que estar junto y separado a la vez. Revisa grupos y separaciones.");return;}
+
+    const colorArr=new Array(units.length).fill(-1);
+    const sizes=new Array(N).fill(0);
+    const constrained=[];for(let i=0;i<units.length;i++)if(adj[i].size>0)constrained.push(i);
+    constrained.sort((a,b)=>adj[b].size-adj[a].size);
+
+    const teamsByLoad=()=>[...Array(N).keys()].sort((a,b)=>(sizes[a]-sizes[b])||(Math.random()-0.5));
+    function bt(k){
+      if(k===constrained.length)return true;
+      const u=constrained[k];
+      for(const t of teamsByLoad()){
+        let ok=true;for(const nb of adj[u])if(colorArr[nb]===t){ok=false;break;}
+        if(!ok)continue;
+        colorArr[u]=t;sizes[t]+=units[u].members.length;
+        if(bt(k+1))return true;
+        sizes[t]-=units[u].members.length;colorArr[u]=-1;
+      }
+      return false;
+    }
+    if(!bt(0)){showNotice("No se puede cumplir con todas las separaciones para "+N+" equipos. Prueba con más equipos o quita alguna separación.");return;}
+
+    const free=[];for(let i=0;i<units.length;i++)if(colorArr[i]===-1)free.push(i);
+    shuffle(free).forEach(i=>{
+      const min=Math.min(...sizes);const cand=[];for(let t=0;t<N;t++)if(sizes[t]===min)cand.push(t);
+      const t=cand[Math.floor(Math.random()*cand.length)];colorArr[i]=t;sizes[t]+=units[i].members.length;
+    });
+
+    const teams=Array.from({length:N},()=>[]);
+    units.forEach((u,i)=>u.members.forEach(m=>teams[colorArr[i]].push(m)));
+    showNotice("");renderResult(teams);
+  }
+
+  function renderResult(teams){
+    const boards=$("#boards");boards.innerHTML="";
+    teams.forEach((members,i)=>{
+      const ck=teamColors[i],col=COLORS[ck];
+      const card=document.createElement("div");card.className="tcard";
+      card.style.setProperty("--c",col.fill);card.style.setProperty("--ct",col.on);card.style.animationDelay=(i*0.05)+"s";
+      const head=document.createElement("div");head.className="thead";
+      const nm=document.createElement("span");nm.className="tname";nm.textContent="Equipo "+(i+1)+" · "+col.name;
+      const ct=document.createElement("span");ct.className="tcount";ct.textContent=members.length;
+      head.appendChild(nm);head.appendChild(ct);card.appendChild(head);
+      const body=document.createElement("div");body.className="tbody";
+      if(!members.length){const e=document.createElement("span");e.className="tempty";e.textContent="Sin jugadores";body.appendChild(e);}
+      else shuffle(members.slice()).forEach(m=>{
+        const j=document.createElement("div");j.className="jersey";
+        const n=document.createElement("span");n.className="nm";n.textContent=m.name;j.appendChild(n);
+        if(m.captain){const a=document.createElement("span");a.className="arm";a.textContent="C";a.title="Capitán";j.appendChild(a);}
+        if(m.group!=null){const l=document.createElement("span");l.className="lock";l.textContent="🔗"+m.group;l.title="Grupo "+m.group;j.appendChild(l);}
+        body.appendChild(j);
+      });
+      card.appendChild(body);boards.appendChild(card);
+    });
+    result.classList.remove("hidden");
+    result.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  // ---- wire ----
+  $("#addBtn").addEventListener("click",addPlayers);
+  input.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter")addPlayers();});
+  $("#clearBtn").addEventListener("click",clearAll);
+  groupBtn.addEventListener("click",groupSelected);
+  separateBtn.addEventListener("click",separateSelected);
+  deselectBtn.addEventListener("click",()=>{selected.clear();render();});
+  lessBtn.addEventListener("click",()=>setTeamCount(teamColors.length-1));
+  moreBtn.addEventListener("click",()=>setTeamCount(teamColors.length+1));
+  drawBtn.addEventListener("click",draw);
+  $("#redrawBtn").addEventListener("click",draw);
+
+  renderTeamSetup();render();
+})();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
