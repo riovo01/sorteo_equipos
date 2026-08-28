@@ -1,0 +1,11 @@
+{
+  "name": "Sorteo de equipos",
+  "short_name": "Sorteo",
+  "description": "Arma equipos de fútbol con capitanes, grupos y separaciones.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f0e9",
+  "theme_color": "#f2f0e9"
+}
