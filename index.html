@@ -722,8 +722,28 @@ const LOGO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAYAAADNkKWqAAAAAXNSR
     return units;
   }
 
+  // Si nadie marcó capitanes a mano, sortea uno al azar por equipo (uno por
+  // grupo "juntos" como mucho, para no generar un conflicto de entrada).
+  function autoAssignCaptainsIfNone(){
+    if(players.some(p=>p.captain))return false;
+    const N=teamColors.length;
+    if(N<1||!players.length)return false;
+    const seenGroup={};
+    const reps=[];
+    players.forEach(p=>{
+      if(p.group!=null){if(seenGroup[p.group])return;seenGroup[p.group]=true;}
+      reps.push(p);
+    });
+    shuffle(reps).slice(0,N).forEach(p=>{p.captain=true;});
+    return true;
+  }
+
   // ---- draw ----
   function draw(){
+    if(autoAssignCaptainsIfNone()){
+      showToast("No marcaste capitanes: se sortearon al azar.");
+      render();
+    }
     const N=teamColors.length;
     const units=buildUnits();
     if(units.some(u=>u.caps>=2)){showNotice("Dos capitanes están en el mismo grupo «Juntos» y no pueden ir en equipos distintos. Sepáralos o deja solo uno.");return;}
