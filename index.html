@@ -103,10 +103,8 @@
     border-radius:5px;padding:5px 6px;min-height:48px;cursor:pointer;transition:border-color .12s ease,background .12s ease}
   .player:hover{border-color:rgba(20,20,20,.4)}
   .player.selected{border-color:var(--ink);background:var(--cream)}
-  .player .name{flex:1 1 110px;min-width:110px;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .player.captain .name::after{content:" · capitán";color:var(--muted);font-weight:500;font-size:12px}
-  .player.gk .name::after{content:" · portero";color:var(--muted);font-weight:500;font-size:12px}
-  .player.captain.gk .name::after{content:" · capitán y portero";color:var(--muted);font-weight:500;font-size:12px}
+  .player .name{flex:1 1 110px;min-width:60px;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player .role-tag{flex:none;color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap}
 
   .cap-btn,.gk-btn{width:36px;height:36px;flex:none;border-radius:4px;background:var(--paper-2);
     border:1.5px solid var(--line);color:var(--muted);font-family:"Anton",sans-serif;font-size:16px;line-height:1;
@@ -679,6 +677,11 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       lvlSel.addEventListener("change",e=>{e.stopPropagation();setLevel(p.id,parseInt(lvlSel.value,10));});
       row.appendChild(lvlSel);
       row.appendChild(name);
+      if(p.captain||p.gk){
+        const role=document.createElement("span");role.className="role-tag";
+        role.textContent="· "+(p.captain&&p.gk?"capitán y portero":p.captain?"capitán":"portero");
+        row.appendChild(role);
+      }
       const edit=document.createElement("button");edit.className="edit-btn";edit.textContent="✎";
       edit.title="Editar nombre";edit.setAttribute("aria-label","Editar nombre de "+p.name);
       edit.addEventListener("click",e=>{e.stopPropagation();editingId=p.id;render();});
@@ -1293,8 +1296,17 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       iconJersey(ctx,x+18,y+headH/2-jerseyS/2,jerseyS,col.on);
       ctx.fillStyle=col.on;ctx.font="italic 700 20px Anton";ctx.textAlign="left";ctx.textBaseline="middle";
       ctx.fillText("EQUIPO "+col.name.toUpperCase(),x+18+jerseyS+10,y+headH/2);
-      ctx.beginPath();ctx.arc(x+w-24,y+headH/2,10,0,Math.PI*2);
-      ctx.fillStyle=col.fill;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=col.on;ctx.stroke();
+      // píldora con la cantidad de jugadores del equipo (antes había un
+      // círculo vacío ahí, sin ninguna información).
+      const countTxt=String(members.length);
+      ctx.font="800 13px Archivo";
+      const countTxtW=ctx.measureText(countTxt).width;
+      const pillH=24, pillW=Math.max(pillH,countTxtW+18);
+      const pillX=x+w-18-pillW, pillY=y+headH/2-pillH/2;
+      roundRectPath(ctx,pillX,pillY,pillW,pillH,pillH/2);
+      ctx.lineWidth=1.5;ctx.strokeStyle=col.on;ctx.stroke();
+      ctx.fillStyle=col.on;ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText(countTxt,pillX+pillW/2,pillY+pillH/2+1);
       let py=y+headH+bodyPadY;
       const rows=Math.max(1,members.length);
       if(!members.length){
