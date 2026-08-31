@@ -1116,21 +1116,6 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     ctx.fillStyle="#ffffff";ctx.fill();
     ctx.restore();
   }
-  function flatBall(ctx,cx,cy,r){
-    ctx.save();
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();
-    ctx.lineWidth=Math.max(1.4,r*0.07);ctx.strokeStyle="#161616";ctx.stroke();
-    const p=5,rp=r*0.42;
-    ctx.beginPath();
-    for(let i=0;i<p;i++){const a=-Math.PI/2+i*(2*Math.PI/p);const px=cx+rp*Math.cos(a),py=cy+rp*Math.sin(a);
-      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
-    ctx.closePath();ctx.fillStyle="#161616";ctx.fill();
-    for(let i=0;i<p;i++){const a=-Math.PI/2+i*(2*Math.PI/p);
-      const x1=cx+rp*0.96*Math.cos(a),y1=cy+rp*0.96*Math.sin(a);
-      const x2=cx+r*0.9*Math.cos(a),y2=cy+r*0.9*Math.sin(a);
-      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineWidth=Math.max(1.4,r*0.06);ctx.strokeStyle="#161616";ctx.stroke();}
-    ctx.restore();
-  }
   // Marco cuadrado redondeado tipo insignia alrededor de un ícono (más
   // personalidad que el ícono suelto).
   function iconBadge(ctx,x,y,box,drawFn,color){
@@ -1467,16 +1452,7 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       if(twoUp&&teams[r*perRow+1]){
         const vsx=pad+colW+colGap/2;
         ctx.fillStyle=ink;ctx.font="italic 800 30px Anton";ctx.textAlign="center";ctx.textBaseline="middle";
-        ctx.fillText("VS",vsx,cy0+h*0.32);
-        flatBall(ctx,vsx,cy0+h*0.55,17);
-      }else if(!twoUp){
-        // con 3+ equipos por fila no cabe un "VS" (no es un cara a cara),
-        // pero se mantiene la firma visual con un balón chico entre columnas.
-        for(let c=1;c<perRow;c++){
-          if(!teams[r*perRow+c])continue;
-          const bx=pad+c*colW+(c-0.5)*colGap;
-          flatBall(ctx,bx,cy0+h/2,9);
-        }
+        ctx.fillText("VS",vsx,cy0+h/2);
       }
       cy0+=h+rowGap;
     }
