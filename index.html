@@ -203,6 +203,8 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .thead .tcount{flex:none;font-size:12px;border:1.5px solid currentColor;padding:0 8px;border-radius:999px;font-weight:800;line-height:1.5}
   .tbody{padding:8px 12px 10px;display:flex;flex-direction:column;min-height:48px;counter-reset:jn}
+  .tstats{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:0 2px 8px;margin-bottom:4px;border-bottom:1px dashed var(--line-2)}
   .tempty{font-size:13px;color:var(--muted);padding:8px 0}
   .jersey{display:flex;align-items:center;gap:9px;padding:9px 2px;color:var(--ink);font-weight:700;font-size:15px;
     cursor:pointer;border-bottom:1px solid var(--line-2)}
@@ -247,6 +249,10 @@
     summary{padding:18px}
     .field-grid{grid-template-columns:1fr 72px repeat(3,1fr)}
     .ctitle{font-size:19px}
+    /* en pantallas más anchas hay lugar de sobra para más de 2 tarjetas
+       por fila; se adapta sola según cuántos equipos entren, en vez de
+       quedar fija en 2 con harto aire vacío alrededor. */
+    .boards{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
   }
   @media (max-width:440px){
     .player{gap:6px 5px;padding:5px}
@@ -372,6 +378,7 @@
         <button class="btn" id="copyBtn">Copiar</button>
         <button class="btn" id="imgBtn">Imagen</button>
         <button class="btn wa" id="waBtn">WhatsApp</button>
+        <button class="btn ghost" id="undoBtn" disabled="">Deshacer</button>
         <button class="btn" id="redrawBtn">Volver a sortear</button>
       </div>
     </div>
@@ -432,6 +439,7 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
   const copyBtn=$("#copyBtn"),waBtn=$("#waBtn"),toast=$("#toast");
   const canchaSel=$("#canchaSel"),canchaNum=$("#canchaNum"),matchDate=$("#matchDate"),timeStart=$("#timeStart"),timeEnd=$("#timeEnd");
   let lastTeams=null;
+  let resultHistory=[];      // sorteos anteriores, para el botón "Deshacer"
   let editingId=null;
   let moveSel=null;
 
@@ -502,6 +510,50 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       lines.push("🕒 "+t);
     }
     return lines;
+  }
+
+  // ---- guardado local (jugadores, equipos y cancha quedan para la próxima) ----
+  const STORAGE_KEY="caimanera_state_v1";
+  function saveState(){
+    try{
+      const state={
+        players,teamColors,apart,nextId,nextGroup,
+        cancha:{sel:canchaSel.value,num:canchaNum.value,date:matchDate.value,start:timeStart.value,end:timeEnd.value}
+      };
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    }catch(e){}
+  }
+  function loadState(){
+    let raw;
+    try{ raw=localStorage.getItem(STORAGE_KEY); }catch(e){ return; }
+    if(!raw)return;
+    let state;
+    try{ state=JSON.parse(raw); }catch(e){ return; }
+    if(!state||typeof state!=="object")return;
+    if(Array.isArray(state.players)){
+      players=state.players.filter(p=>p&&typeof p.name==="string").map(p=>({
+        id:typeof p.id==="number"?p.id:nextId++,
+        name:p.name,captain:!!p.captain,gk:!!p.gk,
+        group:typeof p.group==="number"?p.group:null,
+        level:Math.max(1,Math.min(7,typeof p.level==="number"?p.level:1))
+      }));
+    }
+    players.forEach(p=>{ if(p.id>=nextId) nextId=p.id+1; });
+    if(typeof state.nextGroup==="number") nextGroup=state.nextGroup;
+    if(Array.isArray(state.apart)) apart=state.apart.filter(r=>r&&r.a&&r.b);
+    if(Array.isArray(state.teamColors)&&state.teamColors.length){
+      const valid=state.teamColors.filter(c=>COLORS[c]);
+      if(valid.length) teamColors=valid.slice(0,maxTeams());
+    }
+    if(teamColors.length<2) teamColors=["rojo","azul"];
+    if(state.cancha){
+      const c=state.cancha;
+      if(c.sel!=null) canchaSel.value=c.sel;
+      if(c.num!=null) canchaNum.value=c.num;
+      if(c.date!=null) matchDate.value=c.date;
+      if(c.start!=null) timeStart.value=c.start;
+      if(c.end!=null) timeEnd.value=c.end;
+    }
   }
 
   const groupColor=(g)=>GROUP_COLORS[(g-1)%GROUP_COLORS.length];
@@ -630,6 +682,7 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
         b.addEventListener("click",()=>{teamColors[i]=c;renderTeamSetup();});sw.appendChild(b);});
       row.appendChild(sw);teamSetup.appendChild(row);
     });
+    saveState();
   }
 
   // ---- render ----
@@ -822,10 +875,21 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
 
   const reduceMotion=()=>window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  function updateUndoBtn(){
+    const b=$("#undoBtn");if(!b)return;
+    b.disabled=resultHistory.length===0;
+  }
+  function undoResult(){
+    if(!resultHistory.length)return;
+    const prev=resultHistory.pop();
+    moveSel=null;renderResult(prev,false);updateUndoBtn();
+    showToast("Volviste al sorteo anterior");
+  }
   function revealResult(teams){
+    if(lastTeams){resultHistory.push(lastTeams);if(resultHistory.length>10)resultHistory.shift();}
     moveSel=null;
     const restore=()=>{drawBtn.disabled=players.length<2;drawBtn.textContent="Sortear equipos";
-      $("#redrawBtn").disabled=false;$("#redrawBtn").textContent="Volver a sortear";};
+      $("#redrawBtn").disabled=false;$("#redrawBtn").textContent="Volver a sortear";updateUndoBtn();};
     if(reduceMotion()){renderResult(teams,false);restore();return;}
     drawBtn.disabled=true;drawBtn.textContent="Sorteando…";
     $("#redrawBtn").disabled=true;$("#redrawBtn").textContent="Sorteando…";
@@ -899,6 +963,11 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       head.appendChild(left);head.appendChild(ct);card.appendChild(head);
       head.addEventListener("click",()=>onTeamTap(i));
       const body=document.createElement("div");body.className="tbody";
+      if(members.length){
+        const lvlSum=members.reduce((s,m)=>s+(m.level||1),0);
+        const stats=document.createElement("div");stats.className="tstats";stats.textContent="Nivel total: "+lvlSum;
+        body.appendChild(stats);
+      }
       if(!members.length){const e=document.createElement("span");e.className="tempty";e.textContent=moveSel?"Toca para mover aquí":"Sin jugadores";body.appendChild(e);}
       else members.forEach(m=>{
         const j=document.createElement("div");
@@ -1016,6 +1085,18 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       ctx.quadraticCurveTo(p[0],p[1],m[0],m[1]);}
     ctx.closePath();
   }
+  // Fondo tipo "cancha recién cortada": franjas diagonales sutiles (misma
+  // idea que el rayado de una cancha de pasto), casi imperceptibles para no
+  // restarle legibilidad a nada, solo dan textura/atmósfera de fútbol.
+  function paintPitchBackground(ctx,W,H,bg){
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.save();
+    ctx.translate(W/2,H/2);ctx.rotate(-0.05);
+    const diag=Math.sqrt(W*W+H*H), stripeW=60;
+    ctx.fillStyle="rgba(20,20,20,0.028)";
+    for(let x=-diag;x<diag;x+=stripeW*2) ctx.fillRect(x,-diag,stripeW,diag*2);
+    ctx.restore();
+  }
   function paintRoughBanner(ctx,cx,cy,w,h,rot){
     const jag=Math.max(4,h*0.07);
     ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);
@@ -1112,6 +1193,27 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     ctx.stroke();
     ctx.restore();
   }
+  // Misma silueta de camiseta que iconJersey, pero rellena (para el número
+  // de cada jugador, en vez de un cuadrado liso).
+  function iconJerseyFilled(ctx,x,y,s,color){
+    ctx.save();
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(x+s*0.34,y);
+    ctx.lineTo(x,y+s*0.24);
+    ctx.lineTo(x+s*0.16,y+s*0.46);
+    ctx.lineTo(x+s*0.24,y+s*0.36);
+    ctx.lineTo(x+s*0.24,y+s*0.98);
+    ctx.lineTo(x+s*0.76,y+s*0.98);
+    ctx.lineTo(x+s*0.76,y+s*0.36);
+    ctx.lineTo(x+s*0.84,y+s*0.46);
+    ctx.lineTo(x+s,y+s*0.24);
+    ctx.lineTo(x+s*0.66,y);
+    ctx.quadraticCurveTo(x+s*0.5,y+s*0.18,x+s*0.34,y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 
   async function drawResultImage(includeLogo){
     if(includeLogo===undefined)includeLogo=true;
@@ -1172,7 +1274,7 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     const cardsTop = infoTop + infoH + (blockDefs.length?24:14);
 
     // --- team card metrics (grilla: N equipos por fila) ---
-    const headH=54, lineH=40, bodyPadY=12, badgeS=28, cardR=16;
+    const headH=54, statH=26, lineH=40, bodyPadY=12, badgeS=28, cardR=16;
     const twoUp = teams.length===2;
     // Prueba: 3 equipos por fila cuando no son exactamente 2 (con 2 se
     // mantiene el layout especial de "VS" a todo lo ancho).
@@ -1181,7 +1283,10 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     const colGap = twoUp ? colGapVS : colGapPlain;
     const colW = (W-2*pad-colGap*(perRow-1))/perRow;
     const rowGap=20;
-    const cardHFor=(members)=>headH+bodyPadY*2+Math.max(1,members.length)*lineH;
+    // "nivel total" del equipo (suma de niveles de sus jugadores), para que
+    // se note qué tan parejo quedó el reparto; ocupa una línea extra arriba
+    // de la lista, salvo cuando el equipo quedó sin jugadores.
+    const cardHFor=(members)=>headH+(members.length?statH:0)+bodyPadY*2+Math.max(1,members.length)*lineH;
 
     const numRows=Math.ceil(teams.length/perRow);
     const rowHeights=[];
@@ -1215,8 +1320,8 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
     const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
 
-    // background
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    // fondo con textura sutil de cancha (franjas de pasto)
+    paintPitchBackground(ctx,W,H,bg);
 
     // logo (centrado en la altura de la fila del encabezado)
     if(logo){
@@ -1308,6 +1413,14 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       ctx.fillStyle=col.on;ctx.textAlign="center";ctx.textBaseline="middle";
       ctx.fillText(countTxt,pillX+pillW/2,pillY+pillH/2+1);
       let py=y+headH+bodyPadY;
+      if(members.length){
+        const lvlSum=members.reduce((s,m)=>s+(m.level||1),0);
+        ctx.fillStyle=muted;ctx.font="800 12px Archivo";ctx.textAlign="left";ctx.textBaseline="middle";
+        ctx.fillText("NIVEL TOTAL: "+lvlSum,x+18,py+statH/2-4);
+        ctx.strokeStyle="rgba(20,20,20,0.12)";ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(x+18,py+statH-4);ctx.lineTo(x+w-18,py+statH-4);ctx.stroke();
+        py+=statH;
+      }
       const rows=Math.max(1,members.length);
       if(!members.length){
         ctx.fillStyle=muted;ctx.font="600 15px Archivo";ctx.textAlign="left";ctx.textBaseline="middle";
@@ -1316,10 +1429,12 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       members.forEach((mb,idx)=>{
         const rowCY=py+idx*lineH+lineH/2;
         if(idx%2===1){ctx.fillStyle="rgba(20,20,20,0.035)";ctx.fillRect(x+10,rowCY-lineH/2,w-20,lineH);}
-        roundRectPath(ctx,x+18,rowCY-badgeS/2,badgeS,badgeS,6);
-        ctx.fillStyle="#161616";ctx.fill();
-        ctx.fillStyle="#ffffff";ctx.font="700 15px Archivo";ctx.textAlign="center";ctx.textBaseline="middle";
-        ctx.fillText(String(idx+1),x+18+badgeS/2,rowCY+1);
+        // número del jugador en una camisetita en vez de un cuadrado liso,
+        // para que la ficha se vea más "de plantilla oficial".
+        const jbS=badgeS*1.1, jbX=x+18-(jbS-badgeS)/2, jbY=rowCY-jbS/2;
+        iconJerseyFilled(ctx,jbX,jbY,jbS,"#161616");
+        ctx.fillStyle="#ffffff";ctx.font="800 13px Archivo";ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.fillText(String(idx+1),jbX+jbS*0.5,jbY+jbS*0.68);
         ctx.textAlign="left";ctx.font="700 16px Archivo";ctx.fillStyle=ink;
         const nameX=x+18+badgeS+12;
         ctx.fillText(mb.name,nameX,rowCY);
@@ -1358,6 +1473,14 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
         ctx.fillStyle=ink;ctx.font="italic 800 30px Anton";ctx.textAlign="center";ctx.textBaseline="middle";
         ctx.fillText("VS",vsx,cy0+h*0.32);
         flatBall(ctx,vsx,cy0+h*0.55,17);
+      }else if(!twoUp){
+        // con 3+ equipos por fila no cabe un "VS" (no es un cara a cara),
+        // pero se mantiene la firma visual con un balón chico entre columnas.
+        for(let c=1;c<perRow;c++){
+          if(!teams[r*perRow+c])continue;
+          const bx=pad+c*colW+(c-0.5)*colGap;
+          flatBall(ctx,bx,cy0+h/2,9);
+        }
       }
       cy0+=h+rowGap;
     }
@@ -1439,12 +1562,15 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
   moreBtn.addEventListener("click",()=>setTeamCount(teamColors.length+1));
   drawBtn.addEventListener("click",draw);
   $("#redrawBtn").addEventListener("click",draw);
+  $("#undoBtn").addEventListener("click",undoResult);
   copyBtn.addEventListener("click",copyResult);
   $("#imgBtn").addEventListener("click",shareImage);
   waBtn.addEventListener("click",shareWhatsApp);
+  [canchaSel,canchaNum,matchDate,timeStart,timeEnd].forEach(el=>el.addEventListener("change",saveState));
 
   populateCanchas();
   populateTimes();
+  loadState();
   renderTeamSetup();render();
 })();
 </script>
