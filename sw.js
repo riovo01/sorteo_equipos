@@ -1,9 +1,9 @@
-const CACHE = "sorteo-v30";
+const CACHE = "sorteo-v46";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./LOGO.png"
+  "./logo2.png"
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
