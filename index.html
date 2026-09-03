@@ -1573,40 +1573,54 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),4000);
   }
+  // Intenta compartir el archivo con la hoja del sistema. Devuelve:
+  //  "shared"    -> se compartió
+  //  "cancelled" -> el usuario cerró la hoja (no es un error)
+  //  "unavailable" -> no hay Web Share para archivos, o falló: hay que
+  //                   descargar como respaldo
+  async function tryShareFile(file,text){
+    if(!(navigator.canShare&&navigator.canShare({files:[file]}))) return "unavailable";
+    try{
+      await navigator.share({files:[file],text});
+      return "shared";
+    }catch(e){
+      if(e&&(e.name==="AbortError"||e.name==="NotAllowedError"&&/cancel/i.test(e.message||""))) return "cancelled";
+      return "unavailable";
+    }
+  }
   async function shareImage(){
     if(!lastTeams)return;
     showToast("Generando imagen…");
+    let blob;
     try{
-      const blob=await generateResultBlob();
-      const file=new File([blob],"equipos.png",{type:"image/png"});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],text:"⚽ Equipos sorteados"});
-      }else{
-        downloadBlob(blob,"equipos.png");
-        showToast("Imagen descargada");
-      }
-    }catch(e){showToast("No se pudo compartir la imagen");}
+      blob=await generateResultBlob();
+    }catch(e){ showToast("No se pudo generar la imagen"); return; }
+    const file=new File([blob],"equipos.png",{type:"image/png"});
+    const r=await tryShareFile(file,"⚽ Equipos sorteados");
+    if(r==="cancelled") return;
+    if(r==="shared") return;
+    downloadBlob(blob,"equipos.png");
+    showToast("Imagen descargada");
   }
   async function shareWhatsAppImage(){
     if(!lastTeams)return;
     showToast("Generando imagen…");
+    let blob;
     try{
-      const blob=await generateResultBlob();
-      const file=new File([blob],"equipos.png",{type:"image/png"});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        // Abre la hoja de compartir del sistema con la imagen ya lista para
-        // enviar; ahí se elige WhatsApp igual que al compartir una foto.
-        await navigator.share({files:[file],text:"⚽ Equipos sorteados"});
-      }else{
-        // Sin Web Share (por ejemplo en computadora de escritorio): se
-        // descarga la imagen y se abre WhatsApp Web con el texto, para
-        // adjuntarla a mano.
-        downloadBlob(blob,"equipos.png");
-        showToast("Imagen descargada: adjuntala en WhatsApp");
-        const text=buildShareText();
-        window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
-      }
-    }catch(e){showToast("No se pudo compartir la imagen");}
+      blob=await generateResultBlob();
+    }catch(e){ showToast("No se pudo generar la imagen"); return; }
+    const file=new File([blob],"equipos.png",{type:"image/png"});
+    // En el celular abre la hoja de compartir (ahí se elige WhatsApp igual
+    // que al mandar una foto).
+    const r=await tryShareFile(file,"⚽ Equipos sorteados");
+    if(r==="cancelled") return;
+    if(r==="shared") return;
+    // Sin Web Share (o falló): se descarga la imagen y se abre WhatsApp Web
+    // con el texto, para adjuntarla a mano.
+    downloadBlob(blob,"equipos.png");
+    showToast("Imagen descargada: adjuntala en WhatsApp");
+    const text=buildShareText();
+    window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
   }
 
   // ---- wire ----
