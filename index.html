@@ -1323,29 +1323,31 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     // IZQUIERDO, el balón el DERECHO, y en el centro va el cartel
     // "¡NOS VEMOS EN LA CANCHA!" con el QR + el canal debajo.
     const footerMsg="¡NOS VEMOS EN LA CANCHA!";
-    const centerW = 430;
+    const centerW = 430;                    // referencia del bloque QR + canal
+    const bannerW3 = Math.round(centerW*1.5); // el cartel, 50% más grande
     let nosVemosW=0, nosVemosH=0;
     if(nosVemosImg){
-      nosVemosW=centerW;
+      nosVemosW=bannerW3;
       nosVemosH=nosVemosW*(nosVemosImg.height/nosVemosImg.width);
     }
-    const footerFontSize=fitFontSize(meas,footerMsg,centerW-40,30,16,s=>"italic 700 "+s+"px Anton");
-    const nvH = nosVemosImg ? nosVemosH : 74;
-    const footerTop = cardsBottom+40;
+    const footerFontSize=fitFontSize(meas,footerMsg,bannerW3-40,44,20,s=>"italic 700 "+s+"px Anton");
+    const nvH = nosVemosImg ? nosVemosH : 108;
+    const footerTop = cardsBottom+36;
     const qrPx = 92;
-    const qrTop = footerTop + nvH + 18;
+    const qrTop = footerTop + nvH + 14;
     const H = qrTop + qrPx + 28;
     // balón: rincón inferior derecho (se posiciona por su centro ~0.61/0.49
-    // dentro del recorte para que sangre fuera de los márgenes).
+    // dentro del recorte para que sangre fuera de los márgenes). Muy metido
+    // en la esquina para dejarle lugar al cartel más grande.
     const swipeAspect = 400/650;
-    const swipeW = 540, swipeH = swipeW*swipeAspect;
-    const ballCx = W-64, ballCy = H-64;
+    const swipeW = 430, swipeH = swipeW*swipeAspect;
+    const ballCx = W-6, ballCy = H-44;
     const swipeX = ballCx-0.61*swipeW, swipeY = ballCy-0.49*swipeH;
     // arquería: espejo del balón en el rincón inferior izquierdo. El arco
     // (parte blanca) está centrado en ~(0.22 / 0.68) dentro del recorte.
     const arqAspect = 667/1000;
-    const arqW = 560, arqH = arqW*arqAspect;
-    const arqCx = 58, arqCy = H-58;
+    const arqW = 440, arqH = arqW*arqAspect;
+    const arqCx = 12, arqCy = H-40;
     const arqX = arqCx-0.22*arqW, arqY = arqCy-0.68*arqH;
 
     const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
