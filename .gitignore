@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+*.swp
+*~
+.idea/
+
+# Node (por si en algún momento se agrega tooling)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Temporales / pruebas
+scratchpad/
+*.tmp
