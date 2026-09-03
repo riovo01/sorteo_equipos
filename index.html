@@ -186,10 +186,6 @@
   .result-actions .btn{padding:9px 12px;font-size:12px;min-height:40px}
   .btn.wa{background:#128c4a;color:#fff;border-color:#128c4a}
   .btn.wa:hover{background:#0f7a41;color:#fff}
-  .fmt-row{display:flex;align-items:center;gap:6px;margin:0 2px 12px;flex-wrap:wrap}
-  .fmt-row .fmt-label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .fmt-row .btn{padding:7px 11px;font-size:12px;min-height:36px}
-  .fmt-row .btn.is-on{background:var(--ink);color:#fff}
 
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
     background:var(--ink);color:#fff;font-weight:800;font-size:13px;padding:11px 18px;border-radius:999px;
@@ -387,11 +383,6 @@
         <button class="btn" id="redrawBtn">Volver a sortear</button>
       </div>
     </div>
-    <div class="fmt-row">
-      <span class="fmt-label">Formato</span>
-      <button class="btn fmt-btn is-on" data-fmt="post" type="button">Publicación</button>
-      <button class="btn fmt-btn" data-fmt="story" type="button">Historia 9:16</button>
-    </div>
     <div class="result-note hidden" id="resultNote"></div>
     <p class="move-hint" id="moveHint">Toca un jugador para moverlo: luego toca <b>otro jugador</b> para intercambiar, o el <b>encabezado de un equipo</b> para mandarlo ahí.</p>
     <div class="boards" id="boards"></div>
@@ -528,15 +519,11 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
   }
 
   // ---- guardado local (jugadores, equipos y cancha quedan para la próxima) ----
-  // Formato de la imagen que se genera: "post" (feed, el de siempre) o
-  // "story" (vertical 9:16 para historias/estados).
-  let imgFormat="post";
-
   const STORAGE_KEY="caimanera_state_v1";
   function saveState(){
     try{
       const state={
-        players,teamColors,apart,nextId,nextGroup,imgFormat,
+        players,teamColors,apart,nextId,nextGroup,
         cancha:{sel:canchaSel.value,num:canchaNum.value,date:matchDate.value,start:timeStart.value,end:timeEnd.value}
       };
       localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
@@ -558,7 +545,6 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       }));
     }
     players.forEach(p=>{ if(p.id>=nextId) nextId=p.id+1; });
-    if(state.imgFormat==="post"||state.imgFormat==="story") imgFormat=state.imgFormat;
     if(typeof state.nextGroup==="number") nextGroup=state.nextGroup;
     if(Array.isArray(state.apart)) apart=state.apart.filter(r=>r&&r.a&&r.b);
     if(Array.isArray(state.teamColors)&&state.teamColors.length){
@@ -1302,13 +1288,10 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
 
     // --- team card metrics (grilla: N equipos por fila) ---
     const headH=54, statH=26, lineH=40, bodyPadY=12, badgeS=28, cardR=16;
-    // En formato "historia" (vertical) las tarjetas van apiladas en una sola
-    // columna, así la imagen queda alta y entra bien en 9:16.
-    const stack = imgFormat==="story";
-    const twoUp = teams.length===2 && !stack;
+    const twoUp = teams.length===2;
     // Prueba: 3 equipos por fila cuando no son exactamente 2 (con 2 se
     // mantiene el layout especial de "VS" a todo lo ancho).
-    const perRow = stack ? 1 : (twoUp ? 2 : 3);
+    const perRow = twoUp ? 2 : 3;
     const colGapVS=64, colGapPlain=22;
     const colGap = twoUp ? colGapVS : colGapPlain;
     const colW = (W-2*pad-colGap*(perRow-1))/perRow;
@@ -1568,22 +1551,6 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       ctx.fillText("Escaneá y mirá el canal",txtX,midY+14);
     }
 
-    // Formato "historia": se compone la imagen anterior, centrada, sobre un
-    // lienzo vertical 9:16 (1080x1920) con el mismo fondo de cancha.
-    if(imgFormat==="story"){
-      const SW=1080, SH=1920, M=48;
-      const sc=document.createElement("canvas");
-      sc.width=SW*dpr;sc.height=SH*dpr;
-      const sg=sc.getContext("2d");sg.scale(dpr,dpr);
-      paintPitchBackground(sg,SW,SH,bg);
-      const scale=Math.min((SW-2*M)/W,(SH-2*M)/H);
-      const dW=W*scale, dH=H*scale;
-      const x0=(SW-dW)/2, y0=(SH-dH)/2;
-      sg.imageSmoothingQuality="high";
-      sg.drawImage(cv,0,0,cv.width,cv.height,x0,y0,dW,dH);
-      return sc;
-    }
-
     return cv;
   }
   function canvasToBlob(cv){return new Promise(res=>{cv.toBlob(b=>res(b),"image/png");});}
@@ -1657,19 +1624,11 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
   copyBtn.addEventListener("click",copyResult);
   $("#imgBtn").addEventListener("click",shareImage);
   waBtn.addEventListener("click",shareWhatsAppImage);
-  const fmtBtns=Array.from(document.querySelectorAll(".fmt-btn"));
-  function syncFmtButtons(){ fmtBtns.forEach(b=>b.classList.toggle("is-on",b.dataset.fmt===imgFormat)); }
-  fmtBtns.forEach(b=>b.addEventListener("click",()=>{
-    imgFormat=b.dataset.fmt==="story"?"story":"post";
-    syncFmtButtons();
-    saveState();
-  }));
   [canchaSel,canchaNum,matchDate,timeStart,timeEnd].forEach(el=>el.addEventListener("change",saveState));
 
   populateCanchas();
   populateTimes();
   loadState();
-  syncFmtButtons();
   renderTeamSetup();render();
 })();
 </script>
