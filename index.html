@@ -1290,7 +1290,8 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     // margen derecho (mismo criterio que el logo junto al título arriba).
     const footerMsg="¡NOS VEMOS EN LA CANCHA!";
     const footerAvailW=W-2*pad;
-    const bannerAvailW2 = balonImg ? footerAvailW*0.5 : footerAvailW;
+    const swipeX0 = W-pad-330;
+    const bannerAvailW2 = balonImg ? (swipeX0-pad-10) : footerAvailW;
     let nosVemosW=0, nosVemosH=0;
     if(nosVemosImg){
       nosVemosW=bannerAvailW2;
@@ -1306,7 +1307,7 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
     // derecho e inferior de la imagen, como firma visual en la esquina.
     const swipeAspect = 400/650;
     const swipeW = 460, swipeH = swipeW*swipeAspect;
-    const swipeX = W-pad-330, swipeY = footerTop-25;
+    const swipeX = swipeX0, swipeY = footerTop-25;
 
     const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
     const ctx=cv.getContext("2d");ctx.scale(dpr,dpr);
@@ -1487,24 +1488,18 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
       }
     })();
 
-    // pie de página
+    // pie de página: canal de YouTube en la esquina inferior izquierda,
+    // en el lugar donde antes iba el texto "Hecho con La Caimanera".
     ctx.strokeStyle="rgba(20,20,20,0.3)";ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(pad+50,creditY);ctx.lineTo(W-pad,creditY);ctx.stroke();
     for(let i=0;i<3;i++){
       ctx.beginPath();ctx.moveTo(pad+i*8,creditY+6);ctx.lineTo(pad+i*8+5,creditY-6);ctx.stroke();
     }
-    ctx.fillStyle=muted;ctx.font="600 13px Archivo";ctx.textAlign="left";ctx.textBaseline="middle";
-    ctx.fillText("Hecho con La Caimanera",pad+50,creditY+16);
-
-    // canal de YouTube, alineado a la derecha
     const ytHandle="@la.caimanera";
-    ctx.font="700 13px Archivo";
-    const ytTextW=ctx.measureText(ytHandle).width;
-    const ytIconW=24, ytIconH=17, ytGap=7;
-    const ytX=W-pad-ytTextW-ytGap-ytIconW;
-    iconYouTube(ctx,ytX,creditY+16-ytIconH/2,ytIconW,ytIconH);
-    ctx.fillStyle=ink;ctx.textAlign="left";ctx.textBaseline="middle";
-    ctx.fillText(ytHandle,ytX+ytIconW+ytGap,creditY+16);
+    const ytIconW=22, ytIconH=16, ytGap=7;
+    iconYouTube(ctx,pad+50,creditY+16-ytIconH/2,ytIconW,ytIconH);
+    ctx.fillStyle=ink;ctx.font="700 13px Archivo";ctx.textAlign="left";ctx.textBaseline="middle";
+    ctx.fillText(ytHandle,pad+50+ytIconW+ytGap,creditY+16);
 
     return cv;
   }
