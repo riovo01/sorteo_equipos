@@ -135,6 +135,8 @@
           <option value="clasico">Clásico (logo a la derecha)</option>
           <option value="abajo">Texto abajo</option>
           <option value="centrado">Centrado / minimal</option>
+          <option value="izquierda">Panel a la izquierda</option>
+          <option value="banner">Franja central</option>
         </select>
       </label>
     </div>
@@ -389,11 +391,12 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   function drawLogo(st, W, H){
     if(!st.showLogo || !logo.complete || !logo.naturalWidth) return;
     const sc = parseFloat(st.logoScale)||1;
-    const clasico = st.tpl==='clasico';
-    const sz = (clasico ? H*0.78 : H*0.34) * sc;
+    const bigLogo = st.tpl==='clasico' || st.tpl==='izquierda';
+    const sz = (bigLogo ? H*0.8 : H*0.34) * sc;
     // posición base según plantilla; los sliders ↔/↕ la ajustan
     let x, y;
-    if(clasico){ x = W - sz*0.92; y = H*0.12; }
+    if(st.tpl==='clasico'){ x = W - sz*0.92; y = H*0.12; }
+    else if(st.tpl==='izquierda'){ x = W - sz*0.84; y = (H-sz)/2; }
     else if(st.tpl==='centrado'){ x = (W-sz)/2; y = -sz*0.06; }
     else { x = W - sz*0.98; y = -sz*0.04; }
     const o = off(st,'logo'); x += o.x; y += o.y;
@@ -484,6 +487,83 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     outlined(t3, W/2+o3.x, y2 + s2*1.15 + o3.y, s3, st.c3, 8);
     ctx.textAlign = 'left';
   }
+  function layoutIzquierda(st, W, H){
+    // panel oscuro cubriendo la izquierda, degradado hacia la derecha
+    const pw = W*0.47;
+    const g = ctx.createLinearGradient(0,0,pw,0);
+    g.addColorStop(0,'rgba(6,22,11,.95)'); g.addColorStop(0.72,'rgba(6,22,11,.9)'); g.addColorStop(1,'rgba(6,22,11,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,pw,H);
+    drawLogo(st, W, H);
+
+    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
+    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
+    const mL = W*0.05, maxW = pw - mL - W*0.03;
+    const hasT1=!!t1.trim(), hasT3=!!t3.trim(), hasT4=!!t4.trim();
+    const [l1,l2] = splitTwo(t3);
+    const t3Lines = l2 ? 2 : 1;
+
+    const s1H = hasT1 ? 30*U*1.7 : 0;
+    const s2 = fitSize(t2, maxW, 104*U, 52*U);
+    const s3 = hasT3 ? Math.min(fitSize(l1, maxW, 50*U, 30*U), fitSize(l2||l1, maxW, 50*U, 30*U)) : 0;
+    const t3H = hasT3 ? s3*1.18*t3Lines : 0;
+    const t4H = hasT4 ? 46*U : 0;
+    const gap = 18*U;
+    const blockH = s1H + (hasT1?gap:0) + s2*1.14 + (hasT3?gap*0.7:0) + t3H + (hasT4?gap:0) + t4H;
+
+    let cy = Math.max(H*0.06, (H - blockH)/2);
+    if(hasT1){ pill(mL+o1.x, cy+o1.y, t1, 30*U, st.c1, pickText(st.c1)); cy += s1H + gap; }
+    outlined(t2, mL+o2.x, cy+o2.y, s2, st.c2, 8);
+    cy += s2*1.14 + (hasT3?gap*0.7:0);
+    if(hasT3){
+      outlined(l1, mL+3+o3.x, cy+o3.y, s3, st.c3, 6);
+      if(l2) outlined(l2, mL+3+o3.x, cy + s3*1.18 + o3.y, s3, st.c3, 6);
+      cy += t3H;
+    }
+    if(hasT4){
+      cy += gap;
+      ctx.font = font(28*U); ctx.textBaseline='top';
+      const w = ctx.measureText(t4).width;
+      roundRect(mL+o4.x, cy+o4.y, w + 38*U, t4H, 9*U, st.c4);
+      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 19*U + o4.x, cy + 8*U + o4.y);
+    }
+  }
+  function layoutBanner(st, W, H){
+    drawLogo(st, W, H);
+    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
+    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
+    const mL = W*0.05;
+    const hasT1=!!t1.trim(), hasT3=!!t3.trim(), hasT4=!!t4.trim();
+
+    const s2 = fitSize(t2, W*0.9, 132*U, 78*U);
+    const bandH = s2*1.42;
+    const bandY = H*0.5 - bandH/2;
+    ctx.fillStyle = 'rgba(6,22,11,.93)';
+    ctx.fillRect(0, bandY, W, bandH);
+    ctx.fillStyle = st.c2;
+    ctx.fillRect(0, bandY + bandH, W, 7*U);
+    ctx.fillRect(0, bandY - 7*U, W, 7*U);
+    outlined(t2, mL+o2.x, bandY + (bandH - s2)/2 - s2*0.08 + o2.y, s2, st.c2, 9);
+
+    if(hasT1){
+      const py = Math.max(H*0.04, bandY - 30*U*1.7 - 16*U);
+      pill(mL+o1.x, py + o1.y, t1, 30*U, st.c1, pickText(st.c1));
+    }
+
+    let cy = bandY + bandH + 24*U;
+    if(hasT4){
+      ctx.font = font(30*U); ctx.textBaseline='top';
+      const w = ctx.measureText(t4).width;
+      roundRect(mL+o4.x, cy+o4.y, w + 40*U, 50*U, 10*U, st.c4);
+      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 20*U + o4.x, cy + 9*U + o4.y);
+      cy += 50*U + 14*U;
+    }
+    if(hasT3){
+      const [l1,l2] = splitTwo(t3);
+      const s3 = Math.min(fitSize(l1, W*0.9, 54*U, 32*U), fitSize(l2||l1, W*0.9, 54*U, 32*U));
+      outlined(l1, mL+3+o3.x, cy+o3.y, s3, st.c3, 6);
+      if(l2) outlined(l2, mL+3+o3.x, cy + s3*1.15 + o3.y, s3, st.c3, 6);
+    }
+  }
 
   function pickText(hex){
     const c = hex.replace('#',''); if(c.length < 6) return '#fff';
@@ -541,6 +621,8 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     paintDecorations(st, W, H);
     if(st.tpl==='abajo') layoutAbajo(st, W, H);
     else if(st.tpl==='centrado') layoutCentrado(st, W, H);
+    else if(st.tpl==='izquierda') layoutIzquierda(st, W, H);
+    else if(st.tpl==='banner') layoutBanner(st, W, H);
     else layoutClasico(st, W, H);
     drawBadge(st, W, H);
     drawUbicacion(st, W, H);
