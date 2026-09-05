@@ -1,10 +1,16 @@
-# Sorteo de equipos · La Caimanera
+# La Caimanera · herramientas
 
-App web (PWA) para armar equipos de fútbol de forma pareja y compartir el
-resultado como imagen. Pensada para la previa del partido: cargás los
-jugadores, marcás capitanes / grupos / separaciones y niveles, y la app
-reparte los equipos y genera una imagen lista para mandar por WhatsApp o
-subir a redes.
+Dos herramientas web (PWA, sin build) para el canal/comunidad de fútbol
+La Caimanera, con navegación entre ambas:
+
+- **`index.html` — Sorteador de equipos.** Cargás los jugadores, marcás
+  capitanes / grupos / separaciones y niveles, y la app reparte los
+  equipos y genera una imagen lista para WhatsApp o redes.
+- **`generador_miniaturas.html` — Generador de miniaturas de YouTube.**
+  Textos editables con color propio, foto de fondo, 3 plantillas, formato
+  16:9 y 1:1, badge, y descarga/copia del PNG. Acepta `?t1..t5` por
+  querystring (el botón "Miniatura" del sorteador la abre con la fecha y
+  la cancha del partido ya cargadas).
 
 ## Cómo correr
 
@@ -29,7 +35,8 @@ Es una sola página sin build ni dependencias:
 
 ```
 .
-├── index.html              App completa: HTML + CSS + JS + imágenes en base64
+├── index.html              Sorteador: HTML + CSS + JS + imágenes en base64
+├── generador_miniaturas.html  Generador de miniaturas (mismo criterio)
 ├── sw.js                   Service worker (offline, cache-first para assets,
 │                           network-first para el HTML, auto-actualización)
 ├── manifest.webmanifest    Manifiesto PWA
