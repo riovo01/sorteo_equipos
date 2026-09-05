@@ -213,14 +213,6 @@
 
     <div class="grp">
       <span class="gtitle">Logo</span>
-      <label>Posición
-        <select id="logoPos">
-          <option value="der">Derecha</option>
-          <option value="izq">Izquierda</option>
-          <option value="arriba">Arriba centro</option>
-          <option value="centro">Centro</option>
-        </select>
-      </label>
       <div class="range-row"><span>Tamaño</span><input type="range" id="logoScale" min="0.4" max="1.6" step="0.05" value="1"></div>
       <div class="pos-row">
         <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="logo_x" min="-700" max="700" step="4" value="0" aria-label="Logo: horizontal">
@@ -271,7 +263,7 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   let bgImg = null;
 
   const STORE = "caimanera_miniatura_v1";
-  const FIELDS = ["tpl","t1","c1","t2","c2","t3","c3","t4","c4","t5","badge","badgePos","logoPos","logoScale","bgZoom","bgX","bgY",
+  const FIELDS = ["tpl","t1","c1","t2","c2","t3","c3","t4","c4","t5","badge","badgePos","logoScale","bgZoom","bgX","bgY",
     "t1_x","t1_y","t2_x","t2_y","t3_x","t3_y","t4_x","t4_y","t5_x","t5_y","badge_x","badge_y","logo_x","logo_y"];
   const OFFSETS = ["t1_x","t1_y","t2_x","t2_y","t3_x","t3_y","t4_x","t4_y","t5_x","t5_y","badge_x","badge_y","logo_x","logo_y"];
   const CHECKS = {eLogo:"showLogo",eRayos:"showRayos",eLineas:"showLineas",eFranja:"showFranja",eUbic:"showUbic",eSafe:"showSafe"};
@@ -397,13 +389,13 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   function drawLogo(st, W, H){
     if(!st.showLogo || !logo.complete || !logo.naturalWidth) return;
     const sc = parseFloat(st.logoScale)||1;
-    let base = (st.tpl==='clasico') ? H*0.78 : H*0.34;
-    const sz = base * sc;
+    const clasico = st.tpl==='clasico';
+    const sz = (clasico ? H*0.78 : H*0.34) * sc;
+    // posición base según plantilla; los sliders ↔/↕ la ajustan
     let x, y;
-    if(st.logoPos==='der'){ x = W - sz*0.92; y = H*0.12; }
-    else if(st.logoPos==='izq'){ x = -sz*0.08; y = H*0.12; }
-    else if(st.logoPos==='arriba'){ x = (W-sz)/2; y = -sz*0.06; }
-    else { x = (W-sz)/2; y = (H-sz)/2; }
+    if(clasico){ x = W - sz*0.92; y = H*0.12; }
+    else if(st.tpl==='centrado'){ x = (W-sz)/2; y = -sz*0.06; }
+    else { x = W - sz*0.98; y = -sz*0.04; }
     const o = off(st,'logo'); x += o.x; y += o.y;
     ctx.save(); ctx.shadowColor = 'rgba(255,220,60,.85)'; ctx.shadowBlur = 45;
     ctx.drawImage(logo, x, y, sz, sz); ctx.restore();
@@ -464,7 +456,7 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     }
   }
   function layoutCentrado(st, W, H){
-    drawLogo(Object.assign({}, st, {logoPos: st.logoPos==='centro'?'centro':'arriba'}), W, H);
+    drawLogo(st, W, H);
     const t2=st.t2||' ', t3=st.t3||' ';
     const o2=off(st,'t2'), o3=off(st,'t3');
     ctx.textAlign = 'center';
