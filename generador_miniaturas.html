@@ -434,25 +434,42 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     drawLogo(st, W, H);
     const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
     const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
-    if(t1.trim()) pill(W*0.04+o1.x, H*0.06+o1.y, t1, 32*U, st.c1, pickText(st.c1));
-    // barra inferior
-    const barH = H*0.42;
-    const bg = ctx.createLinearGradient(0,H-barH,0,H);
-    bg.addColorStop(0,'rgba(6,22,11,0)'); bg.addColorStop(0.35,'rgba(6,22,11,.78)'); bg.addColorStop(1,'rgba(6,22,11,.95)');
-    ctx.fillStyle = bg; ctx.fillRect(0,H-barH,W,barH);
-    const s2 = fitSize(t2, W*0.92, 140*U, 80*U);
-    const by2 = H - barH + H*0.06;
-    outlined(t2, W*0.05+o2.x, by2+o2.y, s2, st.c2, 10);
+    const mL = W*0.05;
+    const hasT3 = !!t3.trim(), hasT4 = !!t4.trim();
+
+    // etiqueta superior: arriba a la izquierda
+    if(t1.trim()) pill(mL+o1.x, H*0.05+o1.y, t1, 30*U, st.c1, pickText(st.c1));
+
+    // medidas del bloque inferior (t4 · título · subtítulo), apilado
     const [l1,l2] = splitTwo(t3);
-    const s3 = Math.min(fitSize(l1, W*0.9, 74*U, 44*U), fitSize(l2||l1, W*0.9, 74*U, 44*U));
-    const y3 = by2 + s2*1.05;
-    outlined(l1, W*0.05+4+o3.x, y3+o3.y, s3, st.c3, 7);
-    if(l2) outlined(l2, W*0.05+4+o3.x, y3 + s3*1.12 + o3.y, s3, st.c3, 7);
-    if(t4.trim()){
-      ctx.font = font(34*U); ctx.textBaseline='top';
+    const t3Lines = l2 ? 2 : 1;
+    const s2 = fitSize(t2, W*0.9, 128*U, 66*U);
+    const s3 = hasT3 ? Math.min(fitSize(l1, W*0.9, 58*U, 36*U), fitSize(l2||l1, W*0.9, 58*U, 36*U)) : 0;
+    const t4H = hasT4 ? 50*U : 0;
+    const gap = 16*U;
+    const t3H = hasT3 ? s3*1.15*t3Lines : 0;
+    const blockH = t4H + (hasT4?gap:0) + s2*1.14 + (hasT3?gap:0) + t3H;
+
+    // barra inferior con degradado, cubre el bloque + un margen
+    const barH = Math.min(H*0.78, blockH + H*0.16);
+    const bg = ctx.createLinearGradient(0,H-barH,0,H);
+    bg.addColorStop(0,'rgba(6,22,11,0)'); bg.addColorStop(0.42,'rgba(6,22,11,.82)'); bg.addColorStop(1,'rgba(6,22,11,.97)');
+    ctx.fillStyle = bg; ctx.fillRect(0,H-barH,W,barH);
+
+    // anclar el bloque al fondo
+    let cy = H - H*0.065 - blockH;
+    if(hasT4){
+      ctx.font = font(30*U); ctx.textBaseline='top';
       const w = ctx.measureText(t4).width;
-      roundRect(W*0.05+o4.x, H*0.055+o4.y, w + 44*U, 56*U, 12*U, st.c4);
-      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, W*0.05 + 22*U + o4.x, H*0.055 + 11*U + o4.y);
+      roundRect(mL+o4.x, cy+o4.y, w + 40*U, t4H, 10*U, st.c4);
+      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 20*U + o4.x, cy + 9*U + o4.y);
+      cy += t4H + gap;
+    }
+    outlined(t2, mL+o2.x, cy+o2.y, s2, st.c2, 9);
+    cy += s2*1.14 + (hasT3?gap:0);
+    if(hasT3){
+      outlined(l1, mL+4+o3.x, cy+o3.y, s3, st.c3, 7);
+      if(l2) outlined(l2, mL+4+o3.x, cy + s3*1.15 + o3.y, s3, st.c3, 7);
     }
   }
   function layoutCentrado(st, W, H){
