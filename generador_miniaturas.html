@@ -528,7 +528,6 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     }
   }
   function layoutBanner(st, W, H){
-    drawLogo(st, W, H);
     const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
     const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
     const mL = W*0.05;
@@ -563,6 +562,9 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
       outlined(l1, mL+3+o3.x, cy+o3.y, s3, st.c3, 6);
       if(l2) outlined(l2, mL+3+o3.x, cy + s3*1.15 + o3.y, s3, st.c3, 6);
     }
+
+    // el logo se dibuja al final: queda por encima de la franja
+    drawLogo(st, W, H);
   }
 
   function pickText(hex){
