@@ -1,7 +1,8 @@
-const CACHE = "sorteo-v63";
+const CACHE = "sorteo-v64";
 const ASSETS = [
   "./",
   "./index.html",
+  "./generador_miniaturas.html",
   "./manifest.webmanifest",
   "./logo2.png"
 ];

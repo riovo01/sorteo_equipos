@@ -33,6 +33,14 @@
   .brush{background:var(--ink);color:#fff;
     clip-path:polygon(0.5% 14%,8% 4%,19% 10%,31% 2%,44% 9%,57% 3%,70% 10%,82% 3%,93% 11%,99.5% 5%,99% 88%,90% 97%,78% 90%,64% 98%,50% 91%,36% 98%,23% 90%,11% 97%,1% 89%)}
 
+  .topnav{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding-bottom:10px;
+    border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+  .topnav .nav-brand{font-family:"Anton",sans-serif;font-size:15px;letter-spacing:.05em;text-transform:uppercase}
+  .topnav a{color:var(--muted);text-decoration:none;font-weight:800;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;padding:6px 9px;border-radius:5px}
+  .topnav a:hover{color:var(--ink);background:var(--cream)}
+  .topnav a.active{background:var(--ink);color:#fff}
+
   header{margin:2px 0 16px}
   .brand{display:flex;align-items:center;justify-content:center;gap:12px}
   .brand-logo{width:100%;max-width:400px;height:auto;display:block}
@@ -273,6 +281,12 @@
 <body>
 <div class="wrap">
 
+  <nav class="topnav">
+    <span class="nav-brand">La Caimanera</span>
+    <a href="index.html" class="active">Sorteador</a>
+    <a href="generador_miniaturas.html">Miniaturas</a>
+  </nav>
+
   <header>
     <div class="brand">
       <img src="logo2.png" alt="La Caimanera" class="brand-logo">
@@ -379,6 +393,7 @@
         <button class="btn" id="copyBtn">Copiar</button>
         <button class="btn" id="imgBtn">Imagen</button>
         <button class="btn wa" id="waBtn">WhatsApp</button>
+        <button class="btn" id="thumbBtn">Miniatura</button>
         <button class="btn ghost" id="undoBtn" disabled="">Deshacer</button>
         <button class="btn" id="redrawBtn">Volver a sortear</button>
       </div>
@@ -1645,6 +1660,17 @@ const PARTIDO_DATA_URI_B64 = "iVBORw0KGgoAAAANSUhEUgAAA+gAAAFNCAYAAACT7UWQAAAAAX
   copyBtn.addEventListener("click",copyResult);
   $("#imgBtn").addEventListener("click",shareImage);
   waBtn.addEventListener("click",shareWhatsAppImage);
+  $("#thumbBtn").addEventListener("click",()=>{
+    const info=getMatchInfo();
+    const p=new URLSearchParams();
+    if(info.date) p.set("t2",formatDateShort(info.date).toUpperCase());
+    const hora = info.start&&info.end ? (info.start+" A "+info.end) : "";
+    p.set("t3", hora ? ("PARTIDO · "+hora) : "PARTIDO DE FÚTBOL");
+    let lugar = info.name || "";
+    if(info.num) lugar += (lugar?" · Cancha ":"Cancha ")+info.num;
+    if(lugar) p.set("t5",lugar);
+    window.open("generador_miniaturas.html"+(p.toString()?"?"+p.toString():""),"_blank");
+  });
   [canchaSel,canchaNum,matchDate,timeStart,timeEnd].forEach(el=>el.addEventListener("change",saveState));
 
   populateCanchas();
