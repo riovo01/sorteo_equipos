@@ -65,6 +65,16 @@
   .pos-row{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:5px;align-items:center;margin-top:3px}
   .pos-row .pos-ic{font-size:13px;color:var(--muted);font-weight:700;line-height:1}
   .pos-row input[type=range]{min-width:0;height:18px}
+  .size-row{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;margin-top:3px}
+  .size-row .pos-ic{font-size:12px;color:var(--muted);font-weight:800;line-height:1;letter-spacing:.04em}
+  .size-row input[type=range]{min-width:0;height:18px;accent-color:var(--ink)}
+
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld-t{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .radio-row{display:flex;gap:14px}
+  .rad{flex-direction:row;align-items:center;gap:5px;font-size:11px;text-transform:none;letter-spacing:normal;
+    color:var(--ink);font-weight:700;cursor:pointer}
+  .rad input[type=radio]{accent-color:var(--ink);width:15px;height:15px;margin:0}
 
   .checks{display:flex;flex-wrap:wrap;gap:6px 12px}
   .checks label{flex-direction:row;align-items:center;gap:6px;font-size:11px;
@@ -134,9 +144,14 @@
         <select id="tpl">
           <option value="clasico">Clásico (logo a la derecha)</option>
           <option value="abajo">Texto abajo</option>
+          <option value="superior">Texto arriba</option>
           <option value="centrado">Centrado / minimal</option>
           <option value="izquierda">Panel a la izquierda</option>
           <option value="banner">Franja central</option>
+          <option value="diagonal">Franja diagonal</option>
+          <option value="marco">Marco / póster</option>
+          <option value="tarjeta">Tarjeta clara</option>
+          <option value="titular">Titular gigante</option>
         </select>
       </label>
     </div>
@@ -167,6 +182,7 @@
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="t1_x" min="-620" max="620" step="4" value="0" aria-label="Etiqueta superior: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="t1_y" min="-460" max="460" step="4" value="0" aria-label="Etiqueta superior: vertical">
         </div>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="t1_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Etiqueta superior: tamaño"></div>
       </label>
       <label>Título grande
         <div class="txt-row"><input type="text" id="t2" value="¡GOLAZOS!" maxlength="16"><input type="color" id="c2" value="#ffd228"></div>
@@ -174,20 +190,35 @@
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="t2_x" min="-620" max="620" step="4" value="0" aria-label="Título: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="t2_y" min="-460" max="460" step="4" value="0" aria-label="Título: vertical">
         </div>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="t2_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Título: tamaño"></div>
       </label>
-      <label>Subtítulo (2 líneas)
-        <div class="txt-row"><input type="text" id="t3" value="QUE NADIE VIO VENIR" maxlength="40"><input type="color" id="c3" value="#ffffff"></div>
+      <div class="fld">
+        <span class="fld-t">Subtítulo</span>
+        <div class="txt-row" style="align-items:center">
+          <div class="radio-row" style="flex:1">
+            <label class="rad"><input type="radio" name="t3mode" value="1" checked> 1 línea</label>
+            <label class="rad"><input type="radio" name="t3mode" value="2"> 2 líneas</label>
+          </div>
+          <input type="color" id="c3" value="#ffffff">
+        </div>
+        <div id="t3one"><input type="text" id="t3" value="QUE NADIE VIO VENIR" maxlength="40" style="width:100%"></div>
+        <div id="t3two" hidden>
+          <input type="text" id="t3a" value="" maxlength="24" placeholder="Línea 1" style="width:100%">
+          <input type="text" id="t3b" value="" maxlength="24" placeholder="Línea 2" style="width:100%;margin-top:6px">
+        </div>
         <div class="pos-row">
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="t3_x" min="-620" max="620" step="4" value="0" aria-label="Subtítulo: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="t3_y" min="-460" max="460" step="4" value="0" aria-label="Subtítulo: vertical">
         </div>
-      </label>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="t3_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Subtítulo: tamaño"></div>
+      </div>
       <label>Etiqueta roja
         <div class="txt-row"><input type="text" id="t4" value="TOP 10 DEL AÑO" maxlength="24"><input type="color" id="c4" value="#dc1e28"></div>
         <div class="pos-row">
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="t4_x" min="-620" max="620" step="4" value="0" aria-label="Etiqueta roja: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="t4_y" min="-460" max="460" step="4" value="0" aria-label="Etiqueta roja: vertical">
         </div>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="t4_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Etiqueta roja: tamaño"></div>
       </label>
       <label>Ubicación (pin abajo)
         <input type="text" id="t5" value="Medellín, Colombia" maxlength="34">
@@ -195,6 +226,7 @@
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="t5_x" min="-620" max="620" step="4" value="0" aria-label="Ubicación: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="t5_y" min="-460" max="460" step="4" value="0" aria-label="Ubicación: vertical">
         </div>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="t5_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Ubicación: tamaño"></div>
       </label>
       <label>Badge (esquina, opcional)
         <div class="txt-row">
@@ -209,8 +241,9 @@
           <span class="pos-ic" aria-hidden="true">↔</span><input type="range" id="badge_x" min="-620" max="620" step="4" value="0" aria-label="Badge: horizontal">
           <span class="pos-ic" aria-hidden="true">↕</span><input type="range" id="badge_y" min="-460" max="460" step="4" value="0" aria-label="Badge: vertical">
         </div>
+        <div class="size-row"><span class="pos-ic" aria-hidden="true">Aa</span><input type="range" id="badge_s" min="0.5" max="1.9" step="0.05" value="1" aria-label="Badge: tamaño"></div>
       </label>
-      <button type="button" id="centrar" class="btn-ghost" style="border-radius:5px;padding:9px;font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid var(--line);min-height:38px">Centrar posiciones</button>
+      <button type="button" id="centrar" class="btn-ghost" style="border-radius:5px;padding:9px;font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid var(--line);min-height:38px">Centrar posiciones y tamaños</button>
     </div>
 
     <div class="grp">
@@ -265,9 +298,11 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   let bgImg = null;
 
   const STORE = "caimanera_miniatura_v1";
-  const FIELDS = ["tpl","t1","c1","t2","c2","t3","c3","t4","c4","t5","badge","badgePos","logoScale","bgZoom","bgX","bgY",
-    "t1_x","t1_y","t2_x","t2_y","t3_x","t3_y","t4_x","t4_y","t5_x","t5_y","badge_x","badge_y","logo_x","logo_y"];
+  const FIELDS = ["tpl","t1","c1","t2","c2","t3","c3","t3a","t3b","t4","c4","t5","badge","badgePos","logoScale","bgZoom","bgX","bgY",
+    "t1_x","t1_y","t2_x","t2_y","t3_x","t3_y","t4_x","t4_y","t5_x","t5_y","badge_x","badge_y","logo_x","logo_y",
+    "t1_s","t2_s","t3_s","t4_s","t5_s","badge_s"];
   const OFFSETS = ["t1_x","t1_y","t2_x","t2_y","t3_x","t3_y","t4_x","t4_y","t5_x","t5_y","badge_x","badge_y","logo_x","logo_y"];
+  const SIZES = ["t1_s","t2_s","t3_s","t4_s","t5_s","badge_s"];
   const CHECKS = {eLogo:"showLogo",eRayos:"showRayos",eLineas:"showLineas",eFranja:"showFranja",eUbic:"showUbic",eSafe:"showSafe"};
   let size = "16:9";
 
@@ -276,6 +311,8 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     const s = {size};
     FIELDS.forEach(f => { const el = $(f); if(el) s[f] = el.value; });
     Object.keys(CHECKS).forEach(id => s[CHECKS[id]] = $(id).checked);
+    const m = document.querySelector('input[name="t3mode"]:checked');
+    s.t3mode = m ? m.value : "1";
     return s;
   }
   function saveState(){
@@ -289,6 +326,16 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     if(s.size === "1:1" || s.size === "16:9") setSize(s.size, false);
     FIELDS.forEach(f => { const el = $(f); if(el && s[f] != null) el.value = s[f]; });
     Object.keys(CHECKS).forEach(id => { if(typeof s[CHECKS[id]] === "boolean") $(id).checked = s[CHECKS[id]]; });
+    if(s.t3mode === "1" || s.t3mode === "2"){
+      const r = document.querySelector('input[name="t3mode"][value="'+s.t3mode+'"]');
+      if(r) r.checked = true;
+    }
+    syncT3Mode();
+  }
+  function syncT3Mode(){
+    const two = (document.querySelector('input[name="t3mode"]:checked')||{}).value === "2";
+    $('t3one').hidden = two;
+    $('t3two').hidden = !two;
   }
   function loadState(){
     let raw; try{ raw = localStorage.getItem(STORE); }catch(e){ return; }
@@ -387,17 +434,29 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   }
   // desplazamiento manual del elemento (sliders ↔ / ↕), en px de canvas
   function off(st, el){ return { x: parseFloat(st[el+'_x'])||0, y: parseFloat(st[el+'_y'])||0 }; }
+  // escala de tamaño del elemento (slider "Aa"), 1 = normal
+  function tsc(st, el){ const v = parseFloat(st[el+'_s']); return (v && v > 0) ? v : 1; }
+  // líneas del subtítulo según el modo elegido (1 línea o 2 campos separados)
+  function subLines(st){
+    if(st.t3mode === "2") return [(st.t3a||'').trim(), (st.t3b||'').trim()];
+    return [(st.t3||'').trim(), ''];
+  }
 
   function drawLogo(st, W, H){
     if(!st.showLogo || !logo.complete || !logo.naturalWidth) return;
     const sc = parseFloat(st.logoScale)||1;
-    const bigLogo = st.tpl==='clasico' || st.tpl==='izquierda';
-    const sz = (bigLogo ? H*0.8 : H*0.34) * sc;
+    const tpl = st.tpl;
+    const bigLogo = tpl==='clasico' || tpl==='izquierda';
+    const midLogo = tpl==='superior';
+    const sz = (bigLogo ? H*0.8 : midLogo ? H*0.5 : H*0.34) * sc;
     // posición base según plantilla; los sliders ↔/↕ la ajustan
     let x, y;
-    if(st.tpl==='clasico'){ x = W - sz*0.92; y = H*0.12; }
-    else if(st.tpl==='izquierda'){ x = W - sz*0.84; y = (H-sz)/2; }
-    else if(st.tpl==='centrado'){ x = (W-sz)/2; y = -sz*0.06; }
+    if(tpl==='clasico'){ x = W - sz*0.92; y = H*0.12; }
+    else if(tpl==='izquierda'){ x = W - sz*0.84; y = (H-sz)/2; }
+    else if(tpl==='centrado'){ x = (W-sz)/2; y = -sz*0.06; }
+    else if(tpl==='superior'){ x = (W-sz)/2; y = H - sz*0.92; }
+    else if(tpl==='marco'){ x = W*0.9 - sz; y = H*0.9 - sz; }
+    else if(tpl==='tarjeta'){ x = (W + W*0.66)/2 - sz*0.72; y = (H - H*0.76)/2 - sz*0.24; }
     else { x = W - sz*0.98; y = -sz*0.04; }
     const o = off(st,'logo'); x += o.x; y += o.y;
     ctx.save(); ctx.shadowColor = 'rgba(255,220,60,.85)'; ctx.shadowBlur = 45;
@@ -413,158 +472,331 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     ctx.fillStyle = fg; ctx.fillText(text, x + sz*0.55, y + sz*0.34);
     return sz*1.7;
   }
+  // etiqueta superior (t1) con su escala; devuelve el alto de la píldora
+  function tag1(st, x, y, baseSz){
+    const t1 = (st.t1||'').trim(); if(!t1) return 0;
+    const sz = baseSz*U*tsc(st,'t1'), o = off(st,'t1');
+    pill(x + o.x, y + o.y, t1, sz, st.c1, pickText(st.c1));
+    return sz*1.7;
+  }
+  function tag1H(st, baseSz){ return (st.t1||'').trim() ? baseSz*U*tsc(st,'t1')*1.7 : 0; }
+  // etiqueta roja (t4) con su escala; devuelve el alto de la píldora
+  function tag4(st, x, y, baseSz){
+    const t4 = (st.t4||'').trim(); if(!t4) return 0;
+    const sz = baseSz*U*tsc(st,'t4'), o = off(st,'t4');
+    ctx.font = font(sz); ctx.textBaseline = 'top';
+    const w = ctx.measureText(t4).width, pw = w + sz*1.2, ph = sz*1.55;
+    roundRect(x + o.x, y + o.y, pw, ph, sz*0.28, st.c4);
+    ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, x + sz*0.6 + o.x, y + sz*0.27 + o.y);
+    return ph;
+  }
+  function tag4H(st, baseSz){ return (st.t4||'').trim() ? baseSz*U*tsc(st,'t4')*1.55 : 0; }
+  function titleSize(st, maxW, baseMax, baseMin){
+    const sc = tsc(st,'t2');
+    return fitSize((st.t2||' '), maxW, baseMax*U*sc, baseMin*U*sc);
+  }
+  // subtítulo: mide (subInfo) y dibuja (subDraw) por separado, para poder anclar
+  function subInfo(st, maxW, baseMax, baseMin){
+    const [l1,l2] = subLines(st);
+    if(!l1 && !l2) return {has:false, s3:0, l1:'', l2:'', lines:0, height:0};
+    const sc = tsc(st,'t3');
+    const s3 = Math.min(
+      fitSize(l1||l2, maxW, baseMax*U*sc, baseMin*U*sc),
+      fitSize(l2||l1, maxW, baseMax*U*sc, baseMin*U*sc)
+    );
+    const lines = (l1?1:0) + (l2?1:0);
+    return {has:true, s3, l1, l2, lines, height: s3*1.16*lines};
+  }
+  function subDraw(st, x, y, info, sw){
+    if(!info.has) return;
+    const o = off(st,'t3'); let yy = y + o.y; const xx = x + o.x;
+    if(info.l1){ outlined(info.l1, xx, yy, info.s3, st.c3, sw); yy += info.s3*1.16; }
+    if(info.l2){ outlined(info.l2, xx, yy, info.s3, st.c3, sw); }
+  }
+  function wrapLines(text, maxW, sz, maxLines){
+    ctx.font = font(sz);
+    const words = (text||'').trim().split(/\s+/);
+    const out = []; let cur = '';
+    for(const w of words){
+      const t = cur ? cur + ' ' + w : w;
+      if(cur && ctx.measureText(t).width > maxW){ out.push(cur); cur = w; }
+      else cur = t;
+      if(out.length >= maxLines) break;
+    }
+    if(cur && out.length < maxLines) out.push(cur);
+    return out.length ? out : [''];
+  }
+
   function layoutClasico(st, W, H){
     drawLogo(st, W, H);
-    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
     const mL = W*0.038;
-    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
-    if(t1.trim()) pill(mL+o1.x, H*0.066+o1.y, t1, 34*U, st.c1, pickText(st.c1));
-    const s2 = fitSize(t2, W*0.54, 150*U, 90*U);
-    outlined(t2, mL+o2.x, H*0.20+o2.y, s2, st.c2, 10);
-    const [l1,l2] = splitTwo(t3);
-    const s3 = Math.min(fitSize(l1, W*0.52, 96*U, 52*U), fitSize(l2||l1, W*0.52, 96*U, 52*U));
-    const y3 = H*0.46;
-    outlined(l1, mL+4+o3.x, y3+o3.y, s3, st.c3, 8);
-    if(l2) outlined(l2, mL+4+o3.x, y3 + s3*1.15 + o3.y, s3, st.c3, 8);
-    if(t4.trim()){
-      ctx.font = font(38*U); ctx.textBaseline='top';
-      const w = ctx.measureText(t4).width;
-      roundRect(mL+o4.x, H*0.82+o4.y, w + 50*U, 62*U, 14*U, st.c4);
-      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 25*U + o4.x, H*0.82 + 12*U + o4.y);
-    }
+    const o2=off(st,'t2');
+    tag1(st, mL, H*0.066, 34);
+    const s2 = titleSize(st, W*0.54, 150, 90);
+    outlined((st.t2||' '), mL+o2.x, H*0.20+o2.y, s2, st.c2, 10);
+    const si = subInfo(st, W*0.52, 96, 52);
+    subDraw(st, mL+4, H*0.46, si, 8);
+    tag4(st, mL, H*0.82, 38);
   }
   function layoutAbajo(st, W, H){
     drawLogo(st, W, H);
-    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
-    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
     const mL = W*0.05;
-    const hasT3 = !!t3.trim(), hasT4 = !!t4.trim();
+    const o2=off(st,'t2');
+    tag1(st, mL, H*0.05, 30);
 
-    // etiqueta superior: arriba a la izquierda
-    if(t1.trim()) pill(mL+o1.x, H*0.05+o1.y, t1, 30*U, st.c1, pickText(st.c1));
-
-    // medidas del bloque inferior (t4 · título · subtítulo), apilado
-    const [l1,l2] = splitTwo(t3);
-    const t3Lines = l2 ? 2 : 1;
-    const s2 = fitSize(t2, W*0.9, 128*U, 66*U);
-    const s3 = hasT3 ? Math.min(fitSize(l1, W*0.9, 58*U, 36*U), fitSize(l2||l1, W*0.9, 58*U, 36*U)) : 0;
-    const t4H = hasT4 ? 50*U : 0;
+    const si = subInfo(st, W*0.9, 58, 36);
+    const s2 = titleSize(st, W*0.9, 128, 66);
+    const t4H = tag4H(st, 30);
     const gap = 16*U;
-    const t3H = hasT3 ? s3*1.15*t3Lines : 0;
-    const blockH = t4H + (hasT4?gap:0) + s2*1.14 + (hasT3?gap:0) + t3H;
+    const blockH = t4H + (t4H?gap:0) + s2*1.14 + (si.has?gap:0) + si.height;
 
-    // barra inferior con degradado, cubre el bloque + un margen
-    const barH = Math.min(H*0.78, blockH + H*0.16);
+    const barH = Math.min(H*0.8, blockH + H*0.16);
     const bg = ctx.createLinearGradient(0,H-barH,0,H);
     bg.addColorStop(0,'rgba(6,22,11,0)'); bg.addColorStop(0.42,'rgba(6,22,11,.82)'); bg.addColorStop(1,'rgba(6,22,11,.97)');
     ctx.fillStyle = bg; ctx.fillRect(0,H-barH,W,barH);
 
-    // anclar el bloque al fondo
     let cy = H - H*0.065 - blockH;
-    if(hasT4){
-      ctx.font = font(30*U); ctx.textBaseline='top';
-      const w = ctx.measureText(t4).width;
-      roundRect(mL+o4.x, cy+o4.y, w + 40*U, t4H, 10*U, st.c4);
-      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 20*U + o4.x, cy + 9*U + o4.y);
-      cy += t4H + gap;
-    }
-    outlined(t2, mL+o2.x, cy+o2.y, s2, st.c2, 9);
-    cy += s2*1.14 + (hasT3?gap:0);
-    if(hasT3){
-      outlined(l1, mL+4+o3.x, cy+o3.y, s3, st.c3, 7);
-      if(l2) outlined(l2, mL+4+o3.x, cy + s3*1.15 + o3.y, s3, st.c3, 7);
-    }
+    if(t4H){ tag4(st, mL, cy, 30); cy += t4H + gap; }
+    outlined((st.t2||' '), mL+o2.x, cy+o2.y, s2, st.c2, 9);
+    cy += s2*1.14 + (si.has?gap:0);
+    subDraw(st, mL+4, cy, si, 7);
   }
   function layoutCentrado(st, W, H){
     drawLogo(st, W, H);
-    const t2=st.t2||' ', t3=st.t3||' ';
     const o2=off(st,'t2'), o3=off(st,'t3');
     ctx.textAlign = 'center';
-    const s2 = fitSize(t2, W*0.9, 150*U, 84*U);
+    const s2 = titleSize(st, W*0.9, 150, 84);
     const y2 = H*0.5;
-    outlined(t2, W/2+o2.x, y2+o2.y, s2, st.c2, 10);
-    const s3 = fitSize(t3, W*0.86, 78*U, 44*U);
-    outlined(t3, W/2+o3.x, y2 + s2*1.15 + o3.y, s3, st.c3, 8);
+    outlined((st.t2||' '), W/2+o2.x, y2+o2.y, s2, st.c2, 10);
+    const [l1,l2] = subLines(st);
+    const sub = (l1 && l2) ? l1 + ' ' + l2 : (l1 || l2);
+    if(sub){
+      const s3 = fitSize(sub, W*0.86, 78*U*tsc(st,'t3'), 44*U*tsc(st,'t3'));
+      outlined(sub, W/2+o3.x, y2 + s2*1.15 + o3.y, s3, st.c3, 8);
+    }
     ctx.textAlign = 'left';
   }
   function layoutIzquierda(st, W, H){
-    // panel oscuro cubriendo la izquierda, degradado hacia la derecha
     const pw = W*0.47;
     const g = ctx.createLinearGradient(0,0,pw,0);
     g.addColorStop(0,'rgba(6,22,11,.95)'); g.addColorStop(0.72,'rgba(6,22,11,.9)'); g.addColorStop(1,'rgba(6,22,11,0)');
     ctx.fillStyle = g; ctx.fillRect(0,0,pw,H);
     drawLogo(st, W, H);
 
-    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
-    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
     const mL = W*0.05, maxW = pw - mL - W*0.03;
-    const hasT1=!!t1.trim(), hasT3=!!t3.trim(), hasT4=!!t4.trim();
-    const [l1,l2] = splitTwo(t3);
-    const t3Lines = l2 ? 2 : 1;
-
-    const s1H = hasT1 ? 30*U*1.7 : 0;
-    const s2 = fitSize(t2, maxW, 104*U, 52*U);
-    const s3 = hasT3 ? Math.min(fitSize(l1, maxW, 50*U, 30*U), fitSize(l2||l1, maxW, 50*U, 30*U)) : 0;
-    const t3H = hasT3 ? s3*1.18*t3Lines : 0;
-    const t4H = hasT4 ? 46*U : 0;
+    const o2=off(st,'t2');
+    const s1H = tag1H(st, 30);
+    const s2 = titleSize(st, maxW, 104, 52);
+    const si = subInfo(st, maxW, 50, 30);
+    const t4H = tag4H(st, 28);
     const gap = 18*U;
-    const blockH = s1H + (hasT1?gap:0) + s2*1.14 + (hasT3?gap*0.7:0) + t3H + (hasT4?gap:0) + t4H;
+    const blockH = s1H + (s1H?gap:0) + s2*1.14 + (si.has?gap*0.7:0) + si.height + (t4H?gap:0) + t4H;
 
     let cy = Math.max(H*0.06, (H - blockH)/2);
-    if(hasT1){ pill(mL+o1.x, cy+o1.y, t1, 30*U, st.c1, pickText(st.c1)); cy += s1H + gap; }
-    outlined(t2, mL+o2.x, cy+o2.y, s2, st.c2, 8);
-    cy += s2*1.14 + (hasT3?gap*0.7:0);
-    if(hasT3){
-      outlined(l1, mL+3+o3.x, cy+o3.y, s3, st.c3, 6);
-      if(l2) outlined(l2, mL+3+o3.x, cy + s3*1.18 + o3.y, s3, st.c3, 6);
-      cy += t3H;
-    }
-    if(hasT4){
-      cy += gap;
-      ctx.font = font(28*U); ctx.textBaseline='top';
-      const w = ctx.measureText(t4).width;
-      roundRect(mL+o4.x, cy+o4.y, w + 38*U, t4H, 9*U, st.c4);
-      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 19*U + o4.x, cy + 8*U + o4.y);
-    }
+    if(s1H){ tag1(st, mL, cy, 30); cy += s1H + gap; }
+    outlined((st.t2||' '), mL+o2.x, cy+o2.y, s2, st.c2, 8);
+    cy += s2*1.14 + (si.has?gap*0.7:0);
+    subDraw(st, mL+3, cy, si, 6); cy += si.height;
+    if(t4H){ cy += gap; tag4(st, mL, cy, 28); }
   }
   function layoutBanner(st, W, H){
-    const t1=st.t1||' ', t2=st.t2||' ', t3=st.t3||' ', t4=st.t4||' ';
-    const o1=off(st,'t1'), o2=off(st,'t2'), o3=off(st,'t3'), o4=off(st,'t4');
     const mL = W*0.05;
-    const hasT1=!!t1.trim(), hasT3=!!t3.trim(), hasT4=!!t4.trim();
-
-    const s2 = fitSize(t2, W*0.9, 132*U, 78*U);
+    const o2=off(st,'t2');
+    const s2 = titleSize(st, W*0.9, 132, 78);
     const bandH = s2*1.42;
     const bandY = H*0.5 - bandH/2;
-    ctx.fillStyle = 'rgba(6,22,11,.93)';
-    ctx.fillRect(0, bandY, W, bandH);
+    ctx.fillStyle = 'rgba(6,22,11,.93)'; ctx.fillRect(0, bandY, W, bandH);
     ctx.fillStyle = st.c2;
     ctx.fillRect(0, bandY + bandH, W, 7*U);
     ctx.fillRect(0, bandY - 7*U, W, 7*U);
-    outlined(t2, mL+o2.x, bandY + (bandH - s2)/2 - s2*0.08 + o2.y, s2, st.c2, 9);
+    outlined((st.t2||' '), mL+o2.x, bandY + (bandH - s2)/2 - s2*0.08 + o2.y, s2, st.c2, 9);
 
-    if(hasT1){
-      const py = Math.max(H*0.04, bandY - 30*U*1.7 - 16*U);
-      pill(mL+o1.x, py + o1.y, t1, 30*U, st.c1, pickText(st.c1));
-    }
+    const p1h = tag1H(st, 30);
+    if(p1h) tag1(st, mL, Math.max(H*0.04, bandY - p1h - 16*U), 30);
 
     let cy = bandY + bandH + 24*U;
-    if(hasT4){
-      ctx.font = font(30*U); ctx.textBaseline='top';
-      const w = ctx.measureText(t4).width;
-      roundRect(mL+o4.x, cy+o4.y, w + 40*U, 50*U, 10*U, st.c4);
-      ctx.fillStyle = pickText(st.c4); ctx.fillText(t4, mL + 20*U + o4.x, cy + 9*U + o4.y);
-      cy += 50*U + 14*U;
-    }
-    if(hasT3){
-      const [l1,l2] = splitTwo(t3);
-      const s3 = Math.min(fitSize(l1, W*0.9, 54*U, 32*U), fitSize(l2||l1, W*0.9, 54*U, 32*U));
-      outlined(l1, mL+3+o3.x, cy+o3.y, s3, st.c3, 6);
-      if(l2) outlined(l2, mL+3+o3.x, cy + s3*1.15 + o3.y, s3, st.c3, 6);
-    }
+    const t4H = tag4H(st, 30);
+    if(t4H){ tag4(st, mL, cy, 30); cy += t4H + 14*U; }
+    const si = subInfo(st, W*0.9, 54, 32);
+    subDraw(st, mL+3, cy, si, 6);
 
-    // el logo se dibuja al final: queda por encima de la franja
+    drawLogo(st, W, H); // encima de la franja
+  }
+
+  /* --- plantillas nuevas --- */
+  function layoutSuperior(st, W, H){
+    // espejo de "abajo": textos arriba, logo abajo-centro
+    const mL = W*0.05;
+    const o2=off(st,'t2');
+    const s1H = tag1H(st, 30);
+    const s2 = titleSize(st, W*0.9, 122, 64);
+    const si = subInfo(st, W*0.9, 54, 34);
+    const t4H = tag4H(st, 28);
+    const gap = 15*U;
+    const blockH = s1H + (s1H?gap:0) + s2*1.14 + (si.has?gap:0) + si.height + (t4H?gap:0) + t4H;
+
+    const barH = Math.min(H*0.8, blockH + H*0.14);
+    const bg = ctx.createLinearGradient(0,0,0,barH);
+    bg.addColorStop(0,'rgba(6,22,11,.97)'); bg.addColorStop(0.6,'rgba(6,22,11,.82)'); bg.addColorStop(1,'rgba(6,22,11,0)');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,barH);
+
     drawLogo(st, W, H);
+
+    let cy = H*0.055;
+    if(s1H){ tag1(st, mL, cy, 30); cy += s1H + gap; }
+    if(t4H){ tag4(st, mL, cy, 28); cy += t4H + gap; }
+    outlined((st.t2||' '), mL+o2.x, cy+o2.y, s2, st.c2, 9);
+    cy += s2*1.14 + (si.has?gap:0);
+    subDraw(st, mL+4, cy, si, 7);
+  }
+  function layoutDiagonal(st, W, H){
+    const mL = W*0.06;
+    const o2=off(st,'t2');
+    // franja diagonal oscura cruzando el centro
+    ctx.save();
+    ctx.translate(W/2, H/2); ctx.rotate(-9*Math.PI/180); ctx.translate(-W/2, -H/2);
+    const s2 = titleSize(st, W*0.86, 130*0.94, 74);
+    const bandH = s2*1.5;
+    ctx.fillStyle = 'rgba(6,22,11,.94)';
+    ctx.fillRect(-H*0.3, H*0.5 - bandH/2, W + H*0.6, bandH);
+    ctx.fillStyle = st.c2;
+    ctx.fillRect(-H*0.3, H*0.5 - bandH/2 - 8*U, W + H*0.6, 8*U);
+    ctx.fillRect(-H*0.3, H*0.5 + bandH/2, W + H*0.6, 8*U);
+    outlined((st.t2||' '), mL+o2.x, H*0.5 - s2*0.58 + o2.y, s2, st.c2, 9);
+    ctx.restore();
+
+    tag1(st, mL, H*0.07, 32);
+    const t4H = tag4H(st, 30);
+    let cy = H - H*0.07 - t4H;
+    if(t4H){ tag4(st, mL, cy, 30); }
+    const si = subInfo(st, W*0.55, 50, 32);
+    subDraw(st, mL+3, cy - si.height - 10*U, si, 6);
+
+    drawLogo(st, W, H);
+  }
+  function layoutMarco(st, W, H){
+    // marco grueso del color del título
+    const m = Math.round(W*0.022);
+    const bw = Math.round(H*0.03);
+    ctx.strokeStyle = st.c2; ctx.lineWidth = bw;
+    ctx.strokeRect(m + bw/2, m + bw/2, W - 2*m - bw, H - 2*m - bw);
+    // velo oscuro interior para leer el texto
+    ctx.fillStyle = 'rgba(6,22,11,.42)';
+    ctx.fillRect(m + bw, m + bw, W - 2*m - 2*bw, H - 2*m - 2*bw);
+
+    drawLogo(st, W, H);
+    const o2=off(st,'t2'), o3=off(st,'t3');
+    ctx.textAlign = 'center';
+    const cx = W/2;
+    const p1h = tag1H(st, 28);
+    if(p1h){
+      ctx.textAlign = 'left';
+      const t1 = (st.t1||'').trim();
+      ctx.font = font(28*U*tsc(st,'t1'));
+      const w1 = ctx.measureText(t1).width + 28*U*tsc(st,'t1')*1.1;
+      tag1(st, cx - w1/2, H*0.13, 28);
+      ctx.textAlign = 'center';
+    }
+    const s2 = titleSize(st, W*0.78, 138, 78);
+    const y2 = H*0.44;
+    outlined((st.t2||' '), cx+o2.x, y2+o2.y, s2, st.c2, 9);
+    const [l1,l2] = subLines(st);
+    const sub = (l1 && l2) ? l1 + ' ' + l2 : (l1 || l2);
+    if(sub){
+      const s3 = fitSize(sub, W*0.74, 66*U*tsc(st,'t3'), 40*U*tsc(st,'t3'));
+      outlined(sub, cx+o3.x, y2 + s2*1.18 + o3.y, s3, st.c3, 7);
+    }
+    const t4H = tag4H(st, 28);
+    if(t4H){
+      ctx.textAlign = 'left';
+      const t4 = (st.t4||'').trim();
+      ctx.font = font(28*U*tsc(st,'t4'));
+      const w4 = ctx.measureText(t4).width + 28*U*tsc(st,'t4')*1.2;
+      tag4(st, cx - w4/2, H - H*0.12 - t4H, 28);
+    }
+    ctx.textAlign = 'left';
+  }
+  function layoutTarjeta(st, W, H){
+    // tarjeta clara centrada, texto oscuro (variante luminosa)
+    const cardW = W*0.66, cardH = H*0.76;
+    const cx = (W - cardW)/2, cy = (H - cardH)/2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
+    roundRect(cx, cy, cardW, cardH, 26*U, '#f2efe2');
+    ctx.restore();
+    ctx.fillStyle = st.c2; roundRect(cx, cy, cardW, 12*U, 6*U, st.c2);
+
+    drawLogo(st, W, H);
+
+    const mL = cx + cardW*0.08;
+    const maxW = cardW*0.84;
+    const o2=off(st,'t2');
+    const s1H = tag1H(st, 26);
+    const s2 = titleSize(st, maxW, 96, 52);
+    const si = subInfo(st, maxW, 46, 30);
+    const t4H = tag4H(st, 24);
+    const gap = 16*U;
+    const blockH = s1H + (s1H?gap:0) + s2*1.12 + (si.has?gap:0) + si.height + (t4H?gap*1.4:0) + t4H;
+    let y = cy + (cardH - blockH)/2 + 6*U;
+
+    if(s1H){ tag1(st, mL, y, 26); y += s1H + gap; }
+    // título en tinta (ignora el contorno oscuro: se dibuja plano)
+    ctx.font = font(s2); ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = darkenForLight(st.c2);
+    ctx.fillText((st.t2||' '), mL + o2.x, y + o2.y);
+    y += s2*1.12 + (si.has?gap:0);
+    if(si.has){
+      const o3 = off(st,'t3');
+      ctx.font = font(si.s3); ctx.fillStyle = '#4a4a42';
+      let yy = y + o3.y;
+      if(si.l1){ ctx.fillText(si.l1, mL + o3.x, yy); yy += si.s3*1.16; }
+      if(si.l2){ ctx.fillText(si.l2, mL + o3.x, yy); }
+      y += si.height;
+    }
+    if(t4H){ y += gap*1.4; tag4(st, mL, y, 24); }
+  }
+  function layoutTitular(st, W, H){
+    // titular gigante a varias líneas
+    const mL = W*0.05;
+    const o2=off(st,'t2');
+    const sc2 = tsc(st,'t2');
+    let sz = 168*U*sc2, lines;
+    for(let i=0;i<8;i++){
+      lines = wrapLines(st.t2||' ', W*0.9, sz, 3);
+      const totalH = lines.length * sz * 1.06;
+      if(totalH <= H*0.78 && lines.every(l => { ctx.font = font(sz); return ctx.measureText(l).width <= W*0.9; })) break;
+      sz -= 8*U;
+      if(sz < 70*U) break;
+    }
+    // velo inferior/izquierdo
+    const vg = ctx.createLinearGradient(0,H,0,0);
+    vg.addColorStop(0,'rgba(6,22,11,.9)'); vg.addColorStop(0.7,'rgba(6,22,11,.35)'); vg.addColorStop(1,'rgba(6,22,11,0)');
+    ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
+
+    drawLogo(st, W, H);
+    tag1(st, mL, H*0.06, 30);
+
+    const blockH = lines.length * sz * 1.06;
+    let cy = H*0.9 - blockH;
+    for(const l of lines){ outlined(l, mL + o2.x, cy + o2.y, sz, st.c2, 10); cy += sz*1.06; }
+
+    const t4H = tag4H(st, 28);
+    if(t4H) tag4(st, W - W*0.05 - measureTag4(st, 28), H*0.06, 28);
+    const si = subInfo(st, W*0.9, 46, 30);
+    subDraw(st, mL+3, H*0.9 + 8*U, si, 6);
+  }
+  function measureTag4(st, baseSz){
+    const t4 = (st.t4||'').trim(); if(!t4) return 0;
+    const sz = baseSz*U*tsc(st,'t4');
+    ctx.font = font(sz);
+    return ctx.measureText(t4).width + sz*1.2;
+  }
+  function darkenForLight(hex){
+    const c = (hex||'').replace('#',''); if(c.length < 6) return '#162814';
+    let r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+    const lum = 0.299*r + 0.587*g + 0.114*b;
+    if(lum > 140){ r*=0.45; g*=0.45; b*=0.45; }
+    return 'rgb('+(r|0)+','+(g|0)+','+(b|0)+')';
   }
 
   function pickText(hex){
@@ -576,26 +808,28 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   /* ---------- overlays comunes ---------- */
   function drawBadge(st, W, H){
     const txt = (st.badge||'').trim(); if(!txt) return;
-    ctx.font = font(30*U); ctx.textBaseline = 'top';
-    const w = ctx.measureText(txt).width, pw = w + 44*U, ph = 52*U, m = 34;
+    const sz = 30*U*tsc(st,'badge');
+    ctx.font = font(sz); ctx.textBaseline = 'top';
+    const w = ctx.measureText(txt).width, pw = w + sz*1.45, ph = sz*1.72, m = 34;
     let x, y;
     if(st.badgePos==='tl'){ x = m; y = m; }
     else if(st.badgePos==='br'){ x = W - m - pw; y = H - m - ph; }
     else { x = W - m - pw; y = m; }
     const o = off(st,'badge'); x += o.x; y += o.y;
     roundRect(x, y, pw, ph, ph/2, '#dc1e28');
-    ctx.fillStyle = '#fff'; ctx.fillText(txt, x + 22*U, y + 11*U);
+    ctx.fillStyle = '#fff'; ctx.fillText(txt, x + sz*0.72, y + sz*0.36);
   }
   function drawUbicacion(st, W, H){
     const t5 = (st.t5||'').trim(); if(!t5 || !st.showUbic) return;
-    ctx.font = font(30*U); ctx.textBaseline = 'top';
-    const tw = ctx.measureText(t5).width, pw = tw + 90*U, ph = 56*U;
+    const sz = 30*U*tsc(st,'t5');
+    ctx.font = font(sz); ctx.textBaseline = 'top';
+    const tw = ctx.measureText(t5).width, pw = tw + sz*3, ph = sz*1.86;
     const o = off(st,'t5');
     const px = W - 40 - pw + o.x, py = H - 24 - ph + o.y;
     roundRect(px, py, pw, ph, ph/2, 'rgba(0,0,0,.6)');
-    drawPin(px + 34*U, py + ph/2, '#ffd228');
+    drawPin(px + sz*1.14, py + ph/2, '#ffd228');
     ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
-    ctx.fillText(t5, px + 64*U, py + ph/2 + 1);
+    ctx.fillText(t5, px + sz*2.1, py + ph/2 + 1);
     ctx.textBaseline = 'top';
   }
   function drawSafeZone(W, H){
@@ -621,11 +855,9 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     paintBackground(st, W, H);
     paintDecorations(st, W, H);
-    if(st.tpl==='abajo') layoutAbajo(st, W, H);
-    else if(st.tpl==='centrado') layoutCentrado(st, W, H);
-    else if(st.tpl==='izquierda') layoutIzquierda(st, W, H);
-    else if(st.tpl==='banner') layoutBanner(st, W, H);
-    else layoutClasico(st, W, H);
+    const L = {abajo:layoutAbajo, centrado:layoutCentrado, izquierda:layoutIzquierda, banner:layoutBanner,
+      superior:layoutSuperior, diagonal:layoutDiagonal, marco:layoutMarco, tarjeta:layoutTarjeta, titular:layoutTitular};
+    (L[st.tpl] || layoutClasico)(st, W, H);
     drawBadge(st, W, H);
     drawUbicacion(st, W, H);
     if(!forExport && st.showSafe) drawSafeZone(W, H);
@@ -683,9 +915,21 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
   });
   $('centrar').addEventListener('click', () => {
     OFFSETS.forEach(id => { const el = $(id); if(el) el.value = 0; });
+    SIZES.forEach(id => { const el = $(id); if(el) el.value = 1; });
     $('bgX').value = 0; $('bgY').value = 0;
     draw(); saveState();
   });
+  // subtítulo: 1 / 2 líneas
+  document.querySelectorAll('input[name="t3mode"]').forEach(r => r.addEventListener('change', () => {
+    const two = r.value === "2" && r.checked;
+    if(two && !$('t3a').value && !$('t3b').value){
+      const [a,b] = splitTwo($('t3').value || '');
+      $('t3a').value = a || ''; $('t3b').value = b || '';
+    } else if(!two && !$('t3').value){
+      $('t3').value = [$('t3a').value, $('t3b').value].filter(Boolean).join(' ');
+    }
+    syncT3Mode(); draw(); saveState();
+  }));
 
   /* ---------- descargar / copiar ---------- */
   function exportCanvas(){
@@ -726,6 +970,7 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYCAYAAAC+
     if(!logo.complete) await new Promise(r => { logo.onload = r; logo.onerror = r; });
     loadState();
     applyParams();
+    syncT3Mode();
     setSize(size, false);
     draw();
   }
